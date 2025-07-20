@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+playwright
+pillow
+python-multipart
+requests
+pyjwt
+cryptography
+pymongo
+python-dotenv
+jinja2

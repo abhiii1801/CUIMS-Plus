@@ -1,7 +1,5 @@
 from pymongo import MongoClient
 from config import get_config
-import json
-from bson import ObjectId
 from datetime import datetime
 from dotenv import load_dotenv
 

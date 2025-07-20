@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, status, Form, BackgroundTasks
+import asyncio
+from fastapi import FastAPI, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -12,9 +13,13 @@ from cryptography.fernet import Fernet
 from cuims_scrapper import refresh_user_data
 from pydantic import BaseModel
 import base64
-from io import BytesIO
 from playwright.async_api import async_playwright
-import uuid
+
+async def install_playwright():
+    async with async_playwright() as p:
+        pass
+
+asyncio.run(install_playwright())
 
 
 

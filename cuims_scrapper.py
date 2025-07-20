@@ -1,12 +1,10 @@
-import asyncio
 from playwright.async_api import async_playwright
 import json
-from typing import Dict, List, Optional
+from typing import Dict
 import database as db
 from datetime import datetime
 from PIL import Image
 from io import BytesIO
-import google.generativeai as genai
 import time
 import utils
 
