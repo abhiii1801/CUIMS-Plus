@@ -19,7 +19,7 @@ class CUIMSScraper:
         
         async with async_playwright() as p:
             logged_in = False
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             saved_state = db.load_session(uid)
             if saved_state:
                 print('found state session')
