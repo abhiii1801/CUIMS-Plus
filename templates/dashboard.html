@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>CUIMS+ Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/dashboard.css" />
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="user-info">
+                <h2>Welcome, {{ name }}</h2>
+                <p>UID: {{ user.uid }} • {{ branch }}</p>
+            </div>
+              <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+              
+        </div>
+        
+        <div class="subjects-container" id="subjectContainer">
+            {% for subject in attendance %}
+                <div class="subject-card {{subject.status}}">
+  <div class="subject-header">
+    <div>
+      <div class="subject-name">{{ subject.name }}</div>
+      <div class="subject-code">{{ subject.code }}</div>
+    </div>
+    <div class="attendance-percentage-{{ subject.status }}">{{ subject.percentage }}%</div>
+  </div>
+
+  <div class="attendance-stats">
+    <div class="stat-item">
+      <div class="stat-value">{{ subject.attended }}</div>
+      <div class="stat-label">Attended</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ subject.total }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ subject.missed }}</div>
+      <div class="stat-label">Missed</div>
+    </div>
+  </div>
+
+  <div class="can-miss can-miss-{{ subject.status }}">
+    {{ subject.can_miss_message }}
+    </div>
+</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% include 'bottom_nav.html' %}
+    
+    <script>
+         const success = {{ success | tojson | safe }};
+          if (success) {
+            const banner = document.getElementById('update-banner');
+            banner.textContent = "✅ Latest Data loaded.";
+            banner.style.display = 'block';
+            setTimeout(() => banner.style.display = 'none', 3000);
+          }
+
+        window.addEventListener('load', function () {
+            const cards = document.querySelectorAll('.subject-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('fade-in');
+                }, index * 100);
+            });
+
+
+
+            // const banner = document.getElementById('update-banner');
+
+            // fetch('/refresh-data', {
+            // method: 'POST',
+            // headers: { 'Content-Type': 'application/json' },
+            // })
+            // .then(res => res.json())
+            // .then(data => {
+            //     if (data.attendance) {
+            //     // Rebuild subjects
+            //     const container = document.getElementById('subjectContainer');
+            //     container.innerHTML = '';
+
+            //     data.attendance.forEach(subject => {
+            //         const card = document.createElement('div');
+            //         card.className = `subject-card ${subject.status}`;
+            //         card.innerHTML = `
+            //         <div class="subject-header">
+            //             <div>
+            //             <div class="subject-name">${subject.name}</div>
+            //             <div class="subject-code">${subject.code}</div>
+            //             </div>
+            //             <div class="attendance-percentage-${ subject.status }">${subject.percentage}%</div>
+            //         </div>
+            //         <div class="attendance-stats">
+            //             <div class="stat-item"><div class="stat-value">${subject.attended}</div><div class="stat-label">Attended</div></div>
+            //             <div class="stat-item"><div class="stat-value">${subject.total}</div><div class="stat-label">Total</div></div>
+            //             <div class="stat-item"><div class="stat-value">${subject.missed}</div><div class="stat-label">Missed</div></div>
+            //         </div>
+            //         <div class="can-miss can-miss can-miss-${ subject.status }">${subject.can_miss_message}</div>
+            //         `;
+            //         container.appendChild(card);
+            //     });
+
+            //     banner.textContent = "✅ Latest attendance loaded.";
+            //     setTimeout(() => banner.style.display = 'none', 3000);
+            //     }
+            // })
+            // .catch(err => {
+            //     banner.textContent = "⚠️ Couldn't fetch latest data.";
+            // });
+        });
+
+    </script>
+</body>
+</html>

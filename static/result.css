@@ -1,0 +1,112 @@
+.result-container {
+  min-height: 100vh;
+  padding: 20px;
+  padding-bottom: 100px;
+  background-color: var(--background-light);
+}
+
+.result-header {
+  background: var(--white);
+  padding: 24px 20px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  margin-bottom: 20px;
+  border-left: 4px solid var(--primary-red);
+}
+
+.result-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.result-header p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.semester-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.semester-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.semester-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.semester-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.semester-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.semester-sgpa {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.semester-details {
+  padding: 12px 20px 20px;
+}
+
+.subject-row {
+  border-bottom: 1px solid var(--border-light);
+  padding: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.subject-name-code {
+  max-width: 60%;
+}
+
+.subject-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.subject-code {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.subject-grade-info {
+  text-align: right;
+}
+
+.subject-grade,
+.subject-credit {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.result-graph-container {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  padding: 20px;
+  margin: 20px 0;
+}

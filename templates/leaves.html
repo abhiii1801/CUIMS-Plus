@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>CUIMS+ Leaves</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/leaves.css" />
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="leaves-container">
+        <div class="leaves-header-top">
+            <h2>Leaves Records</h2>
+            <p>All your academic leaves in one place.</p>
+        </div>
+        <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+        <style>
+            #refreshBtn:disabled {
+            background: #bdbdbd;
+            color: #fff;
+            cursor: not-allowed;
+            opacity: 0.7;
+            }
+        </style>
+        <div class="data-refresh-btn" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 8px; margin-bottom: 16px;">
+            <div class="btn-container" style="display: flex; gap: 12px; align-items: center;">
+              <div id="msg-div">
+              </div>
+              <button id="refreshBtn" onclick="handleRefresh()" style="padding: 8px 18px; background: #d32f2f; color: #fff; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                  Refresh
+              </button>
+            </div>
+        </div>
+        <script>
+            function handleRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = 'Refreshing Data'
+
+            fetch('/refresh-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data_to_be_fetched: 'leaves' })
+                
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    btn.disabled = false;
+                    btn.textContent = "Refresh";
+                    let msg = document.getElementById('msg-div');
+                    msg.textContent = 'Data refreshed';
+                    msg.style = 'color: green; font-weight: 500;';
+                    setTimeout(() => msg.textContent = '', 3000);
+                    location.reload()
+                } else {
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+            });
+            }
+        </script>
+        {% for leave in leaves %}
+            {% for entry in leave %}
+            <div class="leave-card {{ 'approved' if 'Approved' in entry.dl_status else 'cancelled' }}">
+                <div class="leave-header">
+                <div>
+                    <div class="leave-number">{{ entry.dl_date }}</div>
+                    <div class="leave-date">DL No: {{ entry.dl_number }}</div>
+                </div>
+                <div class="leave-status {{ 'approved' if 'Approved' in entry.dl_status else 'cancelled' }}">
+                    {{ entry.dl_status }}
+                </div>
+                </div>
+
+                <div class="leave-details">
+                <div><strong>Category:</strong> {{ entry.dl_category }}</div>
+                <div><strong>Type:</strong> {{ entry.dl_type }}</div>
+                {% if entry.dl_timing %}
+                <div><strong>Timings:</strong> {{ entry.dl_timing }}</div>
+                {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+        </div>
+
+    {% include 'bottom_nav.html' %}
+</body>
+</html>

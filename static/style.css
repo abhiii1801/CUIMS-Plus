@@ -1,0 +1,288 @@
+/* ===== CUIMS+ MASTER CSS FILE ===== */
+/* Import Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* ===== GLOBAL VARIABLES ===== */
+:root {
+  --primary-red: #d32f2f;
+  --primary-red-light: #f44336;
+  --primary-red-dark: #b71c1c;
+  --background-light: #fafafa;
+  --white: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-light: #999999;
+  --border-light: #e0e0e0;
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;  
+  --success-green: #4caf50;
+  --warning-orange: #ff9800;
+  --error-red: #f44336;
+  --safe-green: #e8f5e8;
+  --warning-yellow: #fff3e0;
+  --critical-red: #ffebee;
+}
+
+/* ===== BASE STYLES ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--background-light);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== WELCOME/LOGIN PAGE STYLES (login.html) ===== */
+/* ===== DASHBOARD PAGE STYLES (dashboard.html) ===== */
+
+/* ===== PREDICTOR PAGE STYLES (dashboard.html) ===== */
+
+
+/* ===== BOTTOM NAVIGATION STYLES (All Pages) ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  padding: 12px;
+  padding-bottom: 4px;
+  border-top: 1px solid var(--border-light);
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-light);
+  transition: all 0.3s ease;
+  min-width: 64px;
+}
+
+.nav-item.active {
+  background: var(--primary-red);
+  color: var(--white);
+}
+
+.nav-item:hover:not(.active) {
+  background: var(--background-light);
+  color: var(--text-secondary);
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.nav-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ===== SETTINGS STYLES (settings.html) ===== */
+
+/* ===== UTILITY CLASSES ===== */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 360px) {
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .dashboard-header {
+    padding: 20px 16px;
+  }
+
+  .subjects-container {
+    padding: 0 16px;
+  }
+
+  .subject-card {
+    padding: 20px;
+  }
+
+  .predictor-container,
+  .timetable-container,
+  .settings-container {
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+}
+
+@media (min-width: 768px) {
+  .login-card {
+    max-width: 420px;
+  }
+
+  .dashboard-container,
+  .predictor-container,
+  .timetable-container,
+  .more-container,
+  .about-page-container,
+  .ds-page-container,
+  .fees-container,
+  .leaves-container,
+  .marks-container,
+  .profile-container,
+  .result-container,
+  .settings-container,
+  .timetable-container,
+  .welcome-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .bottom-nav {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}
+
+/* ===== PWA SPECIFIC STYLES ===== */
+@media (display-mode: standalone) {
+  .login-container,
+  .dashboard-container,
+  .predictor-container,
+  .timetable-container,
+  .settings-container {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .bottom-nav {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+}
+
+
+.refresh-btn {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-light);
+    transition: background 0.2s ease;
+    margin-left: 8px;
+}
+
+
+/* 😴 When disabled */
+.refresh-btn:disabled {
+    background-color: var(--gray-light, #ccc);
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
+}
+
+.spinner {
+  border: 3px solid #fff;
+  border-top: 3px solid #ff9800;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

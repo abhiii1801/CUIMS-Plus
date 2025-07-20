@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#d32f2f" />
+  <title>CUIMS+ Welcome</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/welcome.css">
+  <link rel="icon" href="favicon.ico" />
+</head>
+<body>
+  <div class="welcome-container">
+    <div class="welcome-header">
+      <h2>Welcome to CUIMS+</h2>
+      <p>Your academic companion—fetching the best for you!</p>
+    </div>
+
+    <div class="terms-box">
+      <h3>Terms & Conditions</h3>
+      <div class="terms-list">
+        ✅ CUIMS+ is an unofficial platform created for academic and personal convenience only.<br>
+        ✅ It is not affiliated with, endorsed by, or connected to any official university authority.<br>
+        ✅ All data used is either scraped with your permission or entered manually by you.<br>
+        ✅ Your login credentials are stored locally and securely on your own device/server.<br>
+        ✅ CUIMS+ does not share, sell, or misuse any personal information.<br>
+        ✅ The app is provided "as-is" without any guarantees of accuracy, uptime, or reliability.<br>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="startFetch()">Continue</button>
+    <div class="fetch-info-box" style="display: none;">
+      <h3>Setting things up…</h3>
+      <p>This is a one-time process and may take a few seconds. We're securely collecting your academic data for a personalized experience. Sit back and relax 😌</p>
+    </div>
+    <ul class="fetch-status-list" id="status-list" style="display: none;">
+      <li id="status"><span class="loader"></span> Preparing...</li>
+    </ul>
+    <form method="post" action="/register">
+        <input type="text" name="uid" value="{{ uid }}" readonly hidden />
+        <input type="password" name="password" value="{{ password }}" readonly hidden/>
+        <button type="submit" class="start-btn-final" style="display: none;" id="cont-final">Continue</button>
+    </form>
+  </div>
+
+  <script>
+    const steps = [
+      "Fetching Attendance",
+      "Fetching Marks",
+      "Fetching Timetable",
+      "Fetching Profile"
+    ];
+
+    async function startFetch() {
+      document.querySelector('.start-btn').style.display = 'none';
+      document.querySelector('.terms-box').style.display = 'none';
+      document.querySelector('.welcome-header').style.display = 'none';
+      document.querySelector('.fetch-info-box').style.display = 'block';
+      const statusList = document.getElementById('status-list');
+      statusList.style.display = 'block';
+
+      document.getElementById('status').textContent = `Fetching Data...`;
+
+      const uid = "{{ uid }}";
+      const password = "{{ password }}";
+
+      try {
+            const res = await fetch('/first-time-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ uid, password })
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                document.getElementById('status').textContent = `✅ Data Fetched Sucessfully...`;
+                document.getElementById('cont-final').style.display = 'block';
+
+            } else {
+                location.reload()
+            }
+        } catch (err) {
+            alert("⚠️ Network Error: " + err.message);
+        }
+
+    }
+  </script>
+</body>
+</html>

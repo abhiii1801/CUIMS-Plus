@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>CUIMS+ Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/predictor.css" />
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="predictor-container">
+        <div class="predictor-header">
+            <div class="predictor-info">
+                <h2>Attendance Prediction</h2>
+                <p>Plan your future attendance and see predictions</p>
+            </div>
+
+              <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+        </div>
+
+        <div class="pred-subjects-container" id="predsubjectContainer">
+            <!-- Sample subjects for demo -->
+            {% for subject in attendance %}
+            <div class="pred-subject-card" id="{{subject.code}}">
+                <div class="pred-subject-header">
+                    <div>
+                        <div class="pred-subject-name">{{subject.name}}</div>
+                        <div class="pred-subject-code">{{subject.code}}</div>
+                    </div>
+                    <div class="pred-attendance-percentage-{{subject.status}}" id="{{subject.code}}-predicted">{{subject.percentage}}%</div>
+                </div>
+                <div class="pred-tag pred-tag-warning" onclick="togglePredictor('{{subject.code}}')">
+                    Predict Future Attendance
+                </div>
+                <div class="predict-box" id="{{subject.code}}-expand" style="display: none;">
+                    <label for="{{subject.code}}-slider">Select future lectures:</label>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="14" value="1" id="{{subject.code}}-slider" oninput="generateLectures('{{subject.code}}')">
+                        <span id="{{subject.code}}-slider-value">1</span>
+                    </div>
+                    <div class="future-lectures" id="{{subject.code}}-lectures">
+                        <!-- Future lectures inserted here dynamically -->
+                    </div>
+                    <!-- <div class="updated-percentage">
+                        <strong>Predicted Attendance: </strong><span id="{{subject.code}}-predicted">75%</span>
+                    </div> -->
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% include 'bottom_nav.html' %}
+
+    <script>
+        // Sample data for demo
+        const attendanceData = {{ attendance|tojson }};
+        const timetableData = {{ timetable|tojson }};
+
+        const userAttendance = {};
+        const attendanceTypeMap = {};
+
+        window.addEventListener('load', function () {
+            const cards = document.querySelectorAll('.pred-subject-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('fade-in');
+                }, index * 100);
+            });
+        });
+
+        function togglePredictor(code) {
+            const el = document.getElementById(`${code}-expand`);
+            const isVisible = el.style.display !== 'none';
+            el.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                generateLectures(code);
+            }else{
+                // Reset predicted percentage to original value when hiding
+                const subj = attendanceData.find(s => s.code === code);
+                if (subj) {
+                    document.getElementById(`${code}-predicted`).innerText = subj.percentage + "%";
+                }
+            }
+        }
+
+        function generateLectures(code) {
+            const slider = document.getElementById(`${code}-slider`);
+            const value = parseInt(slider.value);
+            document.getElementById(`${code}-slider-value`).innerText = value;
+
+            const lectureContainer = document.getElementById(`${code}-lectures`);
+            lectureContainer.innerHTML = "";
+
+            const today = new Date();
+            let count = 0, dayOffset = 0;
+
+            const upcomingLectures = [];
+            // Preserve previous selections
+            const prevTypes = attendanceTypeMap[code] ? [...attendanceTypeMap[code]] : [];
+            attendanceTypeMap[code] = [];
+
+            // Helper function to get weekday name
+            function getWeekdayName(jsDay) {
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                return days[jsDay];
+            }
+
+            while (count < value && dayOffset < 14) {
+                const futureDate = new Date(today);
+                futureDate.setDate(today.getDate() + dayOffset);
+
+                let jsDay = futureDate.getDay(); // 0 (Sun) to 6 (Sat)
+                
+                // Map JavaScript day to timetable index
+                // Based on your timetable structure:
+                // timetable[0] = day_number: 1 (Monday)
+                // timetable[1] = day_number: 2 (Tuesday)
+                // timetable[2] = day_number: 3 (Wednesday)
+                // timetable[3] = day_number: 4 (Thursday)
+                // timetable[4] = day_number: 5 (Friday)
+                // timetable[5] = [] (Saturday - empty)
+                // timetable[6] = day_number: 0 (Sunday)
+                
+                let timetableIndex;
+                if (jsDay === 0) { // Sunday
+                    timetableIndex = 6;
+                } else if (jsDay >= 1 && jsDay <= 5) { // Monday to Friday
+                    timetableIndex = jsDay - 1;
+                } else { // Saturday
+                    timetableIndex = 5;
+                }
+
+                const dayLectures = timetableData[timetableIndex] || [];
+
+                // Sort lectures by time for the day
+                const sortedLectures = dayLectures
+                    .filter(lec => lec.subject_code === code)
+                    .sort((a, b) => {
+                        // Extract start time for comparison
+                        const timeA = a.time.split(' - ')[0].trim();
+                        const timeB = b.time.split(' - ')[0].trim();
+                        
+                        // Convert to 24-hour format for comparison
+                        const convertTo24Hour = (time) => {
+                            const [timePart, period] = time.split(' ');
+                            let [hours, minutes] = timePart.split(':').map(Number);
+                            
+                            if (period === 'PM' && hours !== 12) hours += 12;
+                            if (period === 'AM' && hours === 12) hours = 0;
+                            
+                            return hours * 60 + minutes;
+                        };
+                        
+                        return convertTo24Hour(timeA) - convertTo24Hour(timeB);
+                    });
+
+                sortedLectures.forEach(lec => {
+                    if (count < value) {
+                        upcomingLectures.push({
+                            ...lec,
+                            dateOffset: dayOffset,
+                            dateString: `${getWeekdayName(jsDay)}, ${futureDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                        });
+                        count++;
+                    }
+                });
+
+                dayOffset++;
+            }
+
+            upcomingLectures.forEach((lec, index) => {
+                const lecDiv = document.createElement('div');
+                lecDiv.classList.add('lecture-row');
+                // Use previous type if exists, else default to present
+                const type = prevTypes[index] || "present";
+                lecDiv.innerHTML = `
+                    <div class="lecture-info">${lec.dateString} | ${lec.time} | ${lec.location}</div>
+                    <div class="lecture-buttons">
+                        <button id="${code}-${index}-present" onclick="setStatus('${code}', ${index}, 'present')">✅</button>
+                        <button id="${code}-${index}-leave" onclick="setStatus('${code}', ${index}, 'leave')">🟡</button>
+                        <button id="${code}-${index}-absent" onclick="setStatus('${code}', ${index}, 'absent')">❌</button>
+                    </div>
+                `;
+                lectureContainer.appendChild(lecDiv);
+                attendanceTypeMap[code].push(type);
+            });
+
+            // Set active state for buttons based on type
+            upcomingLectures.forEach((lec, index) => {
+                const type = attendanceTypeMap[code][index] || "present";
+                const btn = document.getElementById(`${code}-${index}-${type}`);
+                if (btn) btn.classList.add('active');
+            });
+
+            updatePrediction(code);
+        }
+
+        function setStatus(code, index, type) {
+            // Remove active class from all buttons in this row
+            ['present', 'leave', 'absent'].forEach(status => {
+                const btn = document.getElementById(`${code}-${index}-${status}`);
+                if (btn) btn.classList.remove('active');
+            });
+
+            // Add active class to clicked button
+            document.getElementById(`${code}-${index}-${type}`).classList.add('active');
+
+            // Update attendance type
+            attendanceTypeMap[code][index] = type;
+            updatePrediction(code);
+        }
+
+        function updatePrediction(code) {
+            const subj = attendanceData.find(s => s.code === code);
+            const types = attendanceTypeMap[code];
+
+            if (!subj || !types) return;
+
+            let attended = subj.attended;
+            let total = subj.total;
+
+            types.forEach(type => {
+                if (type === "present") {
+                    attended++;
+                    total++;
+                } else if (type === "absent") {
+                    total++;
+                    // attended remains the same
+                }
+                // if type === "leave", neither total nor attended changes
+            });
+
+            const percent = ((attended / total) * 100).toFixed(2);
+            document.getElementById(`${code}-predicted`).innerText = percent + "%";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!-- result.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>CUIMS+ Result</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/result.css" />
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="result-container">
+        <div class="result-header">
+            <h2>Semester Results</h2>
+            <p>Your CGPA: <strong>{{ result.cgpa }}</strong></p>
+        </div>
+        <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+
+        <style>
+            #refreshBtn:disabled {
+            background: #bdbdbd;
+            color: #fff;
+            cursor: not-allowed;
+            opacity: 0.7;
+            }
+        </style>
+        <div class="data-refresh-btn" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 8px; margin-bottom: 16px;">
+            <div class="btn-container" style="display: flex; gap: 12px; align-items: center;">
+              <div id="msg-div">
+              </div>
+              <button id="refreshBtn" onclick="handleRefresh()" style="padding: 8px 18px; background: #d32f2f; color: #fff; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                  Refresh
+              </button>
+            </div>
+        </div>
+        <script>
+            function handleRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = 'Refreshing Data'
+
+            fetch('/refresh-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data_to_be_fetched: 'result' })
+                
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    btn.disabled = false;
+                    btn.textContent = "Refresh";
+                    let msg = document.getElementById('msg-div');
+                    msg.textContent = 'Data refreshed';
+                    msg.style = 'color: green; font-weight: 500;';
+                    setTimeout(() => msg.textContent = '', 3000);
+                    location.reload()
+                } else {
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+            });
+            }
+        </script>
+
+        <div class="result-graph-container">
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <div class="semester-wrapper">
+            {% for sem in result.semester_wise_result %}
+            <div class="semester-card" id="semester-{{ sem.semester }}">
+                <div class="semester-header" onclick="toggleSemester('{{ sem.semester }}')">
+                    <div class="semester-title">Semester {{ sem.semester }}</div>
+                    <div class="semester-sgpa">SGPA: {{ sem.sgpa }}</div>
+                </div>
+                <div class="semester-details" id="semester-detail-{{ sem.semester }}">
+                    {% for subj in sem.semester_result %}
+                    <div class="subject-row">
+                        <div class="subject-name-code">
+                            <div class="subject-name">{{ subj.subject_name }}</div>
+                            <div class="subject-code">{{ subj.subject_code }}</div>
+                        </div>
+                        <div class="subject-grade-info">
+                            <div class="subject-grade">Grade: {{ subj.subject_grade_ob }}</div>
+                            <div class="subject-credit">Credits: {{ subj.subject_credits }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% include 'bottom_nav.html' %}
+
+    <script>
+    function toggleSemester(sem) {
+        const detailBox = document.getElementById(`semester-detail-${sem}`);
+        detailBox.style.display = detailBox.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Collapse all by default
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.semester-details').forEach(div => {
+            div.style.display = 'none';
+        });
+    });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const rawData = {{ result.semester_wise_result | tojson }};
+  const reversed = rawData.slice().reverse();
+
+  const sgpaLabels = reversed.map(s => 'Sem ' + s.semester);
+  const sgpaData = reversed.map(s => s.sgpa);
+
+  const ctx = document.getElementById('lineChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sgpaLabels,
+      datasets: [{
+        label: 'SGPA',
+        data: sgpaData,
+        borderColor: 'rgba(211, 47, 47, 1)',
+        backgroundColor: 'rgba(211, 47, 47, 0.1)',
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: 'rgba(211, 47, 47, 1)',
+        pointBorderWidth: 2,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          display: false,
+          grid: {
+            display: false
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#555'
+          }
+        }
+      }
+    }
+  });
+</script>
+
+
+</body>
+</html>

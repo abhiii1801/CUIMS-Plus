@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#d32f2f">
+  <title>CUIMS+ More</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/more.css" />
+  <link rel="icon" href="favicon.ico">
+</head>
+<body>
+  <div class="more-container">
+    <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+    <div class="more-options-container">
+      <div class="more-option-card " data-link="/more/marks">
+        <div class="more-option-header">
+          <div class="more-option-title">Marks</div>
+          <div class="more-option-subtitle">View Internal & External Scores</div>
+        </div>
+      </div>
+
+      <div class="more-option-card " data-link="/more/result">
+        <div class="more-option-header">
+          <div class="more-option-title">Result</div>
+          <div class="more-option-subtitle">University Semester Results</div>
+        </div>
+      </div>
+
+      <div class="more-option-card " data-link="/more/leaves">
+        <div class="more-option-header">
+          <div class="more-option-title">Leaves</div>
+          <div class="more-option-subtitle">Approved & Rejected Leave Info</div>
+        </div>
+      </div>
+
+      <div class="more-option-card " data-link="/more/datesheet">
+        <div class="more-option-header">
+          <div class="more-option-title">Datesheet</div>
+          <div class="more-option-subtitle">Upcoming Exam Schedule</div>
+        </div>
+      </div>
+
+      <div class="more-option-card " data-link="/more/fees">
+        <div class="more-option-header">
+          <div class="more-option-title">Fees</div>
+          <div class="more-option-subtitle">Payment History & Status</div>
+        </div>
+      </div>
+
+      <div class="more-option-card " data-link="/more/profile">
+        <div class="more-option-header">
+          <div class="more-option-title">Profile</div>
+          <div class="more-option-subtitle">Student Details & Info</div>
+        </div>
+      </div>
+
+      <div class="more-option-card" data-link="/more/settings">
+        <div class="more-option-header">
+          <div class="more-option-title">Settings & Preferences</div>
+          <div class="more-option-subtitle">Customize your experience</div>
+        </div>
+      </div>
+
+      <div class="more-option-card" data-link="/more/about">
+        <div class="more-option-header">
+          <div class="more-option-title">About</div>
+          <div class="more-option-subtitle">Version, Credits & Info</div>
+        </div>
+      </div>
+
+      <div class="more-option-card" data-link="/logout">
+        <div class="more-option-header">
+          <div class="more-option-title">Logout</div>
+          <div class="more-option-subtitle">Sign out of CUIMS+</div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  {% include 'bottom_nav.html' %}
+
+  <script>
+    window.addEventListener('load', function () {
+      const cards = document.querySelectorAll('.more-option-card');
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          card.classList.add('fade-in');
+        }, index * 100);
+        card.addEventListener('click', function() {
+          const link = card.getAttribute('data-link');
+          if (link && link !== '#') {
+            window.location.href = link;
+          }
+        });
+        card.style.cursor = 'pointer';
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+.marks-container {
+  min-height: 100vh;
+  padding: 0 20px;
+}
+
+.marks-header {
+  background: var(--white);
+  padding: 24px 20px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  margin: 20px 0;
+  border-left: 4px solid var(--primary-red);
+}
+
+.marks-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.marks-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.marks-subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.marks-subject-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.marks-subject-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.marks-subject-header {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.marks-subject-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.marks-subject-code {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.marks-experiments {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.experiment-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.experiment-name {
+  font-weight: 500;
+}
+
+.experiment-marks {
+  font-weight: 600;
+  color: var(--primary-red);
+}
+
+.marks-graph-container {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  padding: 20px;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 120px;
+}
+
+canvas#radarChart {
+  max-width: 100%;
+  width: 100%;
+  height: max-content;
+}

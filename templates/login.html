@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#d32f2f" />
+  <title>CUIMS+ Login</title>
+  <link rel="stylesheet" href="/static/style.css"" />
+  <link rel="stylesheet" href="/static/login.css" />
+  <link rel="icon" href="favicon.ico">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <h1>CUIMS+</h1>
+        <p>Smart Student Dashboard</p>
+      </div>
+
+      {% if error %}
+        <p class="error-msg">{{ error }}</p>
+      {% endif %}
+
+      <form id="loginForm" method="POST" action="/login">
+        <div class="form-group">
+          <label for="uid" class="form-label">University ID</label>
+          <input type="text" id="uid" name="uid" class="form-input" placeholder="Enter your UID" oninput="this.value = this.value.toUpperCase()" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required />
+        </div>
+
+          <!-- <div class="remember-me">
+            <input type="checkbox" id="remember" name="remember" />
+            <label for="remember">Remember Me</label>
+          </div> -->
+
+        <button type="submit" class="login-button">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const submitBtn = form.querySelector('.login-button');
+
+    form.addEventListener('submit', () => {
+        // Change button text
+        submitBtn.innerHTML = `<span class="spinner"></span> Signing In...`;
+        submitBtn.disabled = true;
+    });
+    </script>
+
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#d32f2f" />
+  <title>CUIMS+ Timetable</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/timetable.css" />
+  <link rel="icon" href="favicon.ico">
+</head>
+<body>
+  <div class="timetable-container">
+    <div class="timetable-header">
+      <h2>Timetable</h2>
+      <p>Your schedule at a glance</p>
+              <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+    </div>
+      <div class="timetable-tabs">
+        <button class="tab-button active" onclick="showTab('today')">Today</button>
+        <button class="tab-button" onclick="showTab('week')">Week</button>
+      </div>
+
+    <div class="tab-content active" id="today-tab">
+      <div class="today-date">
+        <p>Today, {{ today_date }}</p>
+      </div>
+      {% for cls in timetable_today %}
+      <div class="class-card" data-time="{{ cls.time }}">
+        <div class="class-time">{{ cls.time }}</div>
+        <div class="class-content">
+          <div class="class-subject-name">{{ courses[cls.subject_code] }}</div>
+          <div class="class-subject-code">{{ cls.subject_code }}</div>
+          <div class="class-teacher">{{ cls.teacher }}</div>
+        </div>
+        <div class="class-location">{{ cls.location }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="tab-content" id="week-tab">
+        <div class="day-tabs">
+            <button class="day-button active" onclick="showDay(0)">Mon</button>
+            <button class="day-button" onclick="showDay(1)">Tue</button>
+            <button class="day-button" onclick="showDay(2)">Wed</button>
+            <button class="day-button" onclick="showDay(3)">Thu</button>
+            <button class="day-button" onclick="showDay(4)">Fri</button>
+            <button class="day-button" onclick="showDay(5)">Sat</button>
+            <button class="day-button" onclick="showDay(6)">Sun</button>
+        </div>
+      <div class="week-view">
+        {% for day in timetable_week %}
+          <div class="week-day" id="day-{{ loop.index0 }}" >
+            <h2 class="week-day-name">{{ week_dict[loop.index-1] }}</h2>
+            {% for cls in day %}
+            <div class="class-card-week" data-time="{{ cls.time }}">
+              <div class="class-time">{{ cls.time }}</div>
+              <div class="class-content">
+                <div class="class-subject-name">{{ courses[cls.subject_code] }}</div>
+                <div class="class-subject-code">{{ cls.subject_code }}</div>
+                <div class="class-teacher">{{ cls.teacher }}</div>
+              </div>
+              <div class="class-location">{{ cls.location }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% include 'bottom_nav.html' %}
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+      document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(tabId + '-tab').classList.add('active');
+      if (tabId === 'week') {
+        showDay(0)
+      }
+    }
+    function showDay(dayId) {
+    // Hide all days
+    document.querySelectorAll('.week-day').forEach(day => {
+      day.classList.add('hidden');
+    });
+
+    // Show selected day
+    document.getElementById('day-' + dayId).classList.remove('hidden');
+
+    // Update tab styles
+    document.querySelectorAll('.day-button').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.querySelector(`.day-button[onclick="showDay(${dayId})"]`).classList.add('active');
+  }
+
+  function updateClassStatus() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
+
+    // Testing - set specific time
+    // const currentHour = 12; // Set hour (24-hour format)
+    // const currentMinute = 45; // Set minute
+    // const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
+    
+    const classCards = document.querySelectorAll('.class-card');
+    let nextClassFound = false;
+    let currentClassCard = null;
+    let nextClassCard = null;
+    
+    classCards.forEach(card => {
+      const timeText = card.getAttribute('data-time').trim();
+      const timeMatch = timeText.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      
+      if (timeMatch) {
+        let startHour = parseInt(timeMatch[1]);
+        const startMinute = parseInt(timeMatch[2]);
+        let endHour = parseInt(timeMatch[3]);
+        const endMinute = parseInt(timeMatch[4]);
+        const period = timeMatch[5].toUpperCase();
+        
+        // Convert to 24-hour format
+        if (period === 'PM' && startHour !== 12) {
+          startHour += 12;
+        } else if (period === 'AM' && startHour === 12) {
+          startHour = 0;
+        }
+        
+        if (period === 'PM' && endHour !== 12) {
+          endHour += 12;
+        } else if (period === 'AM' && endHour === 12) {
+          endHour = 0;
+        }
+        
+        const startTime = startHour * 60 + startMinute;
+        const endTime = endHour * 60 + endMinute;
+        
+        // Remove all status classes
+        card.classList.remove('past', 'current', 'upcoming');
+        
+        if (currentTime >= startTime && currentTime <= endTime) {
+          // Currently ongoing
+          card.classList.add('current');
+          currentClassCard = card;
+          nextClassFound = true;
+        } else if (currentTime > endTime) {
+          // Past class
+          card.classList.add('past');
+        } else if (currentTime < startTime && !nextClassCard) {
+          // Next upcoming class
+          card.classList.add('upcoming');
+          nextClassCard = card;
+        }
+      }
+    });
+    
+    // Scroll to current class or next class
+    const targetCard = nextClassCard;
+    if (targetCard) {
+      setTimeout(() => {
+        targetCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }, 500); // Small delay to ensure DOM is updated
+    }
+  }
+
+  // Run on page load
+  document.addEventListener('DOMContentLoaded', updateClassStatus);
+
+  // Update every minute
+  setInterval(updateClassStatus, 60000);
+
+
+  </script>
+</body>
+</html>

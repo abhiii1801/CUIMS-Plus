@@ -1,0 +1,28 @@
+<div class="subject-card {{subject.status}}">
+  <div class="subject-header">
+    <div>
+      <div class="subject-name">{{ subject.name }}</div>
+      <div class="subject-code">{{ subject.code }}</div>
+    </div>
+    <div class="attendance-percentage-{{ subject.status }}">{{ subject.percentage }}%</div>
+  </div>
+
+  <div class="attendance-stats">
+    <div class="stat-item">
+      <div class="stat-value">{{ subject.attended }}</div>
+      <div class="stat-label">Attended</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ subject.total }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ subject.missed }}</div>
+      <div class="stat-label">Missed</div>
+    </div>
+  </div>
+
+  <div class="can-miss can-miss-{{ subject.status }}">
+    {{ subject.can_miss_message }}
+    </div>
+</div>

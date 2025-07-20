@@ -1,0 +1,117 @@
+<!-- result.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>CUIMS+ Profile</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/profile.css" />
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <h2>{{ profile_data.Name }}</h2>
+            <p>UID: {{ profile_data.UID }} • {{ profile_data["Program Code"] }}</p>
+        </div>
+        <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+
+        <style>
+            #refreshBtn:disabled {
+            background: #bdbdbd;
+            color: #fff;
+            cursor: not-allowed;
+            opacity: 0.7;
+            }
+        </style>
+        <div class="data-refresh-btn" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 8px; margin-bottom: 16px;">
+            <div class="btn-container" style="display: flex; gap: 12px; align-items: center;">
+              <div id="msg-div">
+              </div>
+              <button id="refreshBtn" onclick="handleRefresh()" style="padding: 8px 18px; background: #d32f2f; color: #fff; border: none; border-radius: 5px; font-weight: 500; cursor: pointer;">
+                  Refresh
+              </button>
+            </div>
+        </div>
+        <script>
+            function handleRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            btn.disabled = true;
+            btn.textContent = 'Refreshing Data'
+
+            fetch('/refresh-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data_to_be_fetched: 'profile' })
+                
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    btn.disabled = false;
+                    btn.textContent = "Refresh";
+                    let msg = document.getElementById('msg-div');
+                    msg.textContent = 'Data refreshed';
+                    msg.style = 'color: green; font-weight: 500;';
+                    setTimeout(() => msg.textContent = '', 3000);
+                    location.reload()
+                } else {
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+            });
+            }
+        </script>
+
+        <div class="profile-section">
+            <h3>Personal Information</h3>
+            <div class="profile-grid">
+            {% for key, value in profile_data.items() %}
+                {% if key not in ["education_info", "contact_info", "", "UID", "Name", "Program Code"] %}
+                <div class="profile-item">
+                    <span class="profile-key">{{ key }}</span>
+                    <span class="profile-value">{{ value }}</span>
+                </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3>Educational Qualifications</h3>
+            <div class="profile-grid">
+            {% for edu in profile_data.education_info %}
+                <div class="profile-edu-card">
+                <strong>{{ edu.qualification }} ({{ edu.steram }})</strong>
+                <div class="profile-edu-detail">School: {{ edu["school/college"] }}</div>
+                <div class="profile-edu-detail">Board: {{ edu["university/board"] }}</div>
+                <div class="profile-edu-detail">Year: {{ edu.passing_year }}</div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3>Contact Information</h3>
+            <div class="profile-grid">
+            {% for contact in profile_data.contact_info %}
+                <div class="profile-contact-card">
+                <strong>{{ contact.contact_type }}</strong>
+                <div class="profile-contact-detail">Mobile: {{ contact.mobile }}</div>
+                {% if contact.email_id %}<div class="profile-contact-detail">Email: {{ contact.email_id }}</div>{% endif %}
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        </div>
+    {% include 'bottom_nav.html' %}
+</body>
+</html>

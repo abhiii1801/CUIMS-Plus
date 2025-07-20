@@ -1,0 +1,227 @@
+.predictor-container {
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+.predictor-header {
+  background: var(--white);
+  padding: 24px 20px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-light);
+  margin: 20px;
+  border-left: 4px solid var(--primary-red);
+}
+
+.predictor-info h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.predictor-info p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.pred-subjects-container {
+  padding: 0 20px;
+}
+
+.pred-subject-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-light);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.pred-subject-card.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pred-subject-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.pred-subject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.pred-subject-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.pred-subject-code {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.pred-attendance-percentage-safe {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--success-green);
+  line-height: 1;
+}
+
+.pred-attendance-percentage-warning {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--warning-orange);
+  line-height: 1;
+}
+
+.pred-attendance-percentage-critical {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--error-red);
+  line-height: 1;
+}
+
+.pred-tag {
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pred-tag:hover {
+  transform: translateY(-1px);
+}
+
+.pred-tag-safe {
+  background: var(--safe-green);
+  color: var(--success-green);
+}
+
+.pred-tag-warning {
+  background: var(--warning-yellow);
+  color: var(--warning-orange);
+}
+
+.pred-tag-critical {
+  background: var(--critical-red);
+  color: var(--error-red);
+}
+
+.predict-box {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--text-light);
+}
+
+.slider-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.slider-container label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.slider-container input[type="range"] {
+  flex: 1;
+  margin: 0 16px;
+  height: 6px;
+  background: var(--text-light);
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary-red);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider-container span {
+  font-weight: 600;
+  color: var(--primary-red);
+  min-width: 20px;
+  text-align: center;
+}
+
+.future-lectures {
+  margin-bottom: 16px;
+}
+
+.lecture-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--text-light);
+}
+
+.lecture-row:last-child {
+  border-bottom: none;
+}
+
+.lecture-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.lecture-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.lecture-buttons button {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.lecture-buttons button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.lecture-buttons button.active {
+  background: rgba(211, 47, 47, 0.1);
+}
+
+.updated-percentage {
+  background: rgba(211, 47, 47, 0.05);
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.updated-percentage strong {
+  color: var(--text-primary);
+}
+
+.updated-percentage span {
+  color: var(--primary-red);
+  font-weight: 700;
+  font-size: 18px;
+}

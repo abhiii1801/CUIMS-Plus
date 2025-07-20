@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <title>CUIMS+ Settings</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/settings.css" />
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h2>Settings & Preferences</h2>
+            <p>Customize your CUIMS+ experience</p>
+        </div>
+        <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+                <span class="spinner"></span>Fetching latest Data...
+              </div>
+
+        <div class="settings-tile">
+            <div class="settings-label">
+            <strong>Attendance Goal</strong>
+            <p>Current: {{attendance_goal}}%</p>
+            </div>
+            <div class="settings-slider">
+                <input type="range" min="75" max="100" step="1" value="{{ attendance_goal or 75 }}" id="goalSlider" oninput="updateGoalValue()" style="accent-color: var(--primary-red); height: 6px; border-radius: 8px; background: linear-gradient(90deg, var(--primary-red) 0%, #f5bcbc 100%); box-shadow: 0 2px 8px #f5bcbc55;">
+                <span id="goalValue" style="font-weight: bold; font-size: 18px; margin-left: 10px; color: var(--primary-red);">{{ attendance_goal or 75 }}%</span>
+            </div>
+        </div>
+
+        <!-- <div class="settings-tile">
+            <div class="settings-label">
+            <strong>Dark Mode</strong>
+            <p>Switch to dark theme</p>
+            </div>
+            <label class="switch">
+            <input type="checkbox" id="darkModeToggle">
+            <span class="slider round"></span>
+            </label>
+        </div> -->
+
+        <div style="text-align: right; margin-top: 32px;">
+            <span id="successTag" style="display:none; margin-left:16px; background:#4caf50; color:#fff; padding:4px 12px; border-radius:6px; font-size:14px;">✔ Saved!</span>
+            <button id="applyBtn" style="padding: 10px 28px; font-size: 16px; background: var(--primary-red); color: #fff; border: none; border-radius: 8px; cursor: pointer; position: relative; min-width: 110px; min-height: 44px;">
+                <span id="applyBtnText" style="display:inline-block; min-width:48px; text-align:center;">Apply</span>
+                <span id="applyBtnLoader" style="display:none; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:22px; height:22px;"><svg width="22" height="22" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.415, 31.415" transform="rotate(72.0001 25 25)"><animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/></circle></svg></span>
+            </button>
+        </div>
+
+        </div>
+
+        <script>
+        function updateGoalValue() {
+            const val = document.getElementById('goalSlider').value;
+            document.getElementById('goalValue').innerText = val + "%";
+        }
+
+        // Apply button logic
+        const applyBtn = document.getElementById('applyBtn');
+        const applyBtnText = document.getElementById('applyBtnText');
+        const applyBtnLoader = document.getElementById('applyBtnLoader');
+        const successTag = document.getElementById('successTag');
+
+        applyBtn.addEventListener('click', function() {
+            // Gather preferences
+            const attendance_goal = parseInt(document.getElementById('goalSlider').value);
+
+            // Show loader
+            applyBtnText.style.display = 'none';
+            applyBtnLoader.style.display = 'inline-block';
+            applyBtn.disabled = true;
+
+            fetch('/apply_settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attendance_goal })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Hide loader, show success
+                applyBtnText.style.display = '';
+                applyBtnLoader.style.display = 'none';
+                applyBtn.disabled = false;
+                if (data.success) {
+                    successTag.style.display = 'inline-block';
+                    setTimeout(() => { successTag.style.display = 'none'; }, 3000);
+                }
+            })
+            .catch(() => {
+                applyBtnText.style.display = '';
+                applyBtnLoader.style.display = 'none';
+                applyBtn.disabled = false;
+            });
+        });
+        </script>
+
+
+
+
+
+    {% include 'bottom_nav.html' %}
+</body>
+</html>
