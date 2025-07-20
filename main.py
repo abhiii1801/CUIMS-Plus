@@ -11,6 +11,10 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 from cuims_scrapper import refresh_user_data
 from pydantic import BaseModel
+import base64
+from io import BytesIO
+from playwright.async_api import async_playwright
+import uuid
 
 
 
@@ -216,10 +220,7 @@ class RefreshRequest(BaseModel):
     data_to_be_fetched: str
     
 @app.post("/refresh-data")
-async def refresh_data(
-    request: Request,
-    data_to_be_fetched: Optional[str] = Form(None)
-):
+async def refresh_data(request: Request, data_to_be_fetched: Optional[str] = Form(None)):
     # Try to read from JSON if form param not sent
     if data_to_be_fetched is None:
         try:
@@ -257,22 +258,81 @@ async def get_status(request: Request):
 class FirstTimeUserRequest(BaseModel):
     uid: str
     password: str
-    
+    step: str = "first"
+    captcha: str = None
+
+# app.py (FastAPI)
+sessions = {}  # store {uid: {page, browser, context}}
+
 @app.post("/first-time-user")
 async def first_time_user(data: FirstTimeUserRequest):
-    result = await refresh_user_data(data.uid, data.password, 'all')
+    uid = data.uid
+    password = data.password
 
-    if result["status"] == "success":
-        print("First-time user refresh successful!")
-        return JSONResponse(content={
-            "status": "success",
-            "message": "Initial data loaded."
-        })
-    else:
-        return JSONResponse(content={
-            "status": "failure",
-            "message": result["message"]
-        }, status_code=500)
+    if data.step == "first":
+        p = await async_playwright().start()
+        browser = await p.chromium.launch(headless=False)
+        context = await browser.new_context()
+        page = await context.new_page()
+
+        await page.goto("https://students.cuchd.in/Login.aspx")
+        await page.fill("#txtUserId", uid)
+        await page.click("#btnNext")
+        await page.wait_for_selector("#imgCaptcha")
+
+        captcha_element = await page.query_selector("#imgCaptcha")
+        captcha_bytes = await captcha_element.screenshot()
+        image_b64 = base64.b64encode(captcha_bytes).decode()
+
+        sessions[uid] = {
+            "page": page,
+            "browser": browser,
+            "context": context,
+        }
+
+        return JSONResponse(content={"status": "captcha", "captcha_image": image_b64})
+
+    elif data.step == "second":
+        captcha = data.captcha
+        session = sessions.get(uid)
+
+        if not session:
+            return JSONResponse(content={"status": "error", "msg": "Session expired"})
+
+        page = session["page"]
+
+        await page.fill("#txtLoginPassword", password)
+        await page.fill("#txtcaptcha", captcha)
+        await page.click("#btnLogin")
+        await page.wait_for_timeout(2000)
+
+        if page.url == 'https://students.cuchd.in/StudentHome.aspx':
+            # Clean up!
+            # await session["browser"].close()
+            # sessions.pop(uid, None)
+            return JSONResponse(content={"status": "success"})
+        else:
+            await session["browser"].close()
+            sessions.pop(uid, None)
+            return JSONResponse(content={"status": "error", "msg": "Invalid login"})
+        
+    elif data.step == 'third':
+        session = sessions.get(uid)
+        page = session["page"]
+        context = session['context']
+        
+        storage_state = await context.storage_state()
+        db.save_session(uid, storage_state)
+        
+        await session["browser"].close()
+        sessions.pop(uid, None)
+        
+        add_new_data = await refresh_user_data(uid,password,'all')
+        
+        if add_new_data['status'] == 'success':
+            return JSONResponse(content={"status": "success"})
+        
+
 
 @app.get("/more/marks")
 async def marks(request: Request):

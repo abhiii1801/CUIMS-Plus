@@ -111,3 +111,19 @@ def transform_attendance(attendance_data: list, goal=75) -> list:
 
     return transformed
 
+import asyncio
+
+captcha_sessions = {}
+
+class CaptchaSession:
+    def __init__(self):
+        self.event = asyncio.Event()
+        self.captcha_text = None
+
+    async def wait_for_captcha(self):
+        await self.event.wait()
+        return self.captcha_text
+
+    def set_captcha(self, captcha_text):
+        self.captcha_text = captcha_text
+        self.event.set()

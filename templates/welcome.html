@@ -8,85 +8,468 @@
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/welcome.css">
   <link rel="icon" href="favicon.ico" />
+  <style>
+    /* Enhanced animations and transitions */
+    .step {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease-in-out;
+    }
+    
+    .step.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .step.hidden {
+      display: none;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #d32f2f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Pulse animation for status text */
+    .status-pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    
+    /* Dots animation */
+    .dots {
+      display: inline-block;
+    }
+    
+    .dots::after {
+      content: '';
+      animation: dots 2s linear infinite;
+    }
+    
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+    
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(45deg, #d32f2f, #f44336);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+    
+    /* Captcha step styling */
+    .captcha-image {
+      width: 100%;
+      max-width: 500px;
+      display: block;
+      margin: 1rem auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+    
+    .captcha-image:hover {
+      transform: scale(1.02);
+    }
+    
+    .captcha-input {
+      padding: 12px 16px;
+      width: 100%;
+      max-width: 300px;
+      margin: 1rem auto;
+      display: block;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+      font-size: 16px;
+      text-align: center;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .captcha-input:focus {
+      outline: none;
+      border-color: #d32f2f;
+      box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+    }
+    
+    /* Success animation */
+    .success-check {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #4caf50;
+      margin: 20px auto;
+      position: relative;
+      animation: bounce 0.6s ease-in-out;
+    }
+    
+    .success-check::after {
+      content: '✓';
+      color: white;
+      font-size: 40px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    /* Button hover effects */
+    .start-btn {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .start-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .start-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .start-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(211, 47, 47, 0.3);
+    }
+    
+    .start-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .start-btn:disabled:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  </style>
 </head>
 <body>
   <div class="welcome-container">
-    <div class="welcome-header">
-      <h2>Welcome to CUIMS+</h2>
-      <p>Your academic companion—fetching the best for you!</p>
-    </div>
-
-    <div class="terms-box">
-      <h3>Terms & Conditions</h3>
-      <div class="terms-list">
-        ✅ CUIMS+ is an unofficial platform created for academic and personal convenience only.<br>
-        ✅ It is not affiliated with, endorsed by, or connected to any official university authority.<br>
-        ✅ All data used is either scraped with your permission or entered manually by you.<br>
-        ✅ Your login credentials are stored locally and securely on your own device/server.<br>
-        ✅ CUIMS+ does not share, sell, or misuse any personal information.<br>
-        ✅ The app is provided "as-is" without any guarantees of accuracy, uptime, or reliability.<br>
+    <!-- Step 1: Welcome & Terms -->
+    <div class="step active" id="step-welcome">
+      <div class="welcome-header">
+        <h2>Welcome to CUIMS+</h2>
+        <p>Your academic companion—fetching the best for you!</p>
       </div>
+
+      <div class="terms-box">
+        <h3>Terms & Conditions</h3>
+        <div class="terms-list">
+          ✅ CUIMS+ is an unofficial platform created for academic and personal convenience only.<br>
+          ✅ It is not affiliated with, endorsed by, or connected to any official university authority.<br>
+          ✅ All data used is either scraped with your permission or entered manually by you.<br>
+          ✅ Your login credentials are stored locally and securely on your own device/server.<br>
+          ✅ CUIMS+ does not share, sell, or misuse any personal information.<br>
+          ✅ The app is provided "as-is" without any guarantees of accuracy, uptime, or reliability.<br>
+        </div>
+      </div>
+
+      <button class="start-btn" onclick="startFetch()">Continue</button>
     </div>
 
-    <button class="start-btn" onclick="startFetch()">Continue</button>
-    <div class="fetch-info-box" style="display: none;">
-      <h3>Setting things up…</h3>
-      <p>This is a one-time process and may take a few seconds. We're securely collecting your academic data for a personalized experience. Sit back and relax 😌</p>
+    <!-- Step 2: Initial Loading -->
+    <div class="step" id="step-loading">
+      <div class="welcome-header">
+        <h2>Setting things up…</h2>
+        <p>This is a one-time process and may take a few seconds. We're securely collecting your academic data for a personalized experience. Sit back and relax 😌</p>
+      </div>
+
+      <div class="loading-spinner"></div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <p id="status" class="status-pulse">Connecting to CUIMS<span class="dots"></span></p>
     </div>
-    <ul class="fetch-status-list" id="status-list" style="display: none;">
-      <li id="status"><span class="loader"></span> Preparing...</li>
-    </ul>
-    <form method="post" action="/register">
-        <input type="text" name="uid" value="{{ uid }}" readonly hidden />
-        <input type="password" name="password" value="{{ password }}" readonly hidden/>
-        <button type="submit" class="start-btn-final" style="display: none;" id="cont-final">Continue</button>
+
+    <!-- Step 3: Captcha -->
+    <div class="step" id="step-captcha">
+      <div class="welcome-header">
+        <h2>Security Verification</h2>
+        <p>Please solve the captcha below to continue.<br><strong>Good news!</strong> This is a <u>one-time</u> thing — no captcha next time 😎</p>
+      </div>
+
+      <div id="captcha-container"></div>
+    </div>
+
+    <!-- Step 4: Final Loading -->
+    <div class="step" id="step-final-loading">
+      <div class="welcome-header">
+        <h2>Almost Done!</h2>
+        <p>Finalizing your account setup<span class="dots"></span></p>
+      </div>
+
+      <div class="loading-spinner"></div>
+      <div class="progress-container">
+        <div class="progress-bar" style="width: 90%;"></div>
+      </div>
+      <p id="final-status" class="status-pulse">Processing your data<span class="dots"></span></p>
+    </div>
+
+    <!-- Step 5: Success -->
+    <div class="step" id="step-success">
+      <div class="welcome-header">
+        <h2>All Set!</h2>
+        <p>Your account has been created successfully</p>
+      </div>
+
+      <div class="success-check"></div>
+      <p>Redirecting to your dashboard<span class="dots"></span></p>
+    </div>
+
+    <!-- Hidden form for registration -->
+    <form method="post" action="/register" id="register-form" style="display: none;">
+      <input type="text" name="uid" id="form-uid" hidden />
+      <input type="password" name="password" id="form-password" hidden />
+      <button type="submit" class="start-btn-final">Continue</button>
     </form>
   </div>
 
   <script>
-    const steps = [
-      "Fetching Attendance",
-      "Fetching Marks",
-      "Fetching Timetable",
-      "Fetching Profile"
-    ];
+    const uid = "{{ uid }}";
+    const password = "{{ password }}";
+
+    function showStep(stepId) {
+      // Hide all steps
+      document.querySelectorAll('.step').forEach(step => {
+        step.classList.remove('active');
+        setTimeout(() => {
+          if (!step.classList.contains('active')) {
+            step.classList.add('hidden');
+          }
+        }, 500);
+      });
+
+      // Show target step
+      setTimeout(() => {
+        const targetStep = document.getElementById(stepId);
+        targetStep.classList.remove('hidden');
+        setTimeout(() => {
+          targetStep.classList.add('active');
+        }, 10);
+      }, 300);
+    }
+
+    function updateProgress(percentage) {
+      const progressBar = document.getElementById('progress-bar');
+      if (progressBar) {
+        progressBar.style.width = percentage + '%';
+      }
+    }
 
     async function startFetch() {
-      document.querySelector('.start-btn').style.display = 'none';
-      document.querySelector('.terms-box').style.display = 'none';
-      document.querySelector('.welcome-header').style.display = 'none';
-      document.querySelector('.fetch-info-box').style.display = 'block';
-      const statusList = document.getElementById('status-list');
-      statusList.style.display = 'block';
-
-      document.getElementById('status').textContent = `Fetching Data...`;
-
-      const uid = "{{ uid }}";
-      const password = "{{ password }}";
+      showStep('step-loading');
+      updateProgress(20);
 
       try {
-            const res = await fetch('/first-time-user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ uid, password })
+        document.getElementById('status').innerHTML = 'Connecting to CUIMS<span class="dots"></span>';
+        updateProgress(40);
+
+        const res = await fetch('/first-time-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ uid, password, step: 'first' })
+        });
+
+        updateProgress(60);
+        document.getElementById('status').innerHTML = 'Authenticating<span class="dots"></span>';
+
+        const data = await res.json();
+        updateProgress(100);
+
+        if (data.status === 'captcha') {
+          setTimeout(() => {
+            showStep('step-captcha');
+            document.getElementById('captcha-container').innerHTML = `
+              <img src="data:image/png;base64,${data.captcha_image}" alt="Captcha" class="captcha-image" />
+              <input type="text" id="captcha-input" placeholder="Enter the captcha" class="captcha-input" autocomplete="off">
+              <button onclick="verifyCaptcha()" class="start-btn" style="margin-top: 1rem;">Verify Captcha</button>
+            `;
+            
+            // Auto-focus on captcha input
+            setTimeout(() => {
+              document.getElementById('captcha-input').focus();
+            }, 100);
+            
+            // Allow Enter key to submit
+            document.getElementById('captcha-input').addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                verifyCaptcha();
+              }
             });
-
-            const data = await res.json();
-
-            if (data.status === 'success') {
-                document.getElementById('status').textContent = `✅ Data Fetched Sucessfully...`;
-                document.getElementById('cont-final').style.display = 'block';
-
-            } else {
-                location.reload()
-            }
-        } catch (err) {
-            alert("⚠️ Network Error: " + err.message);
+          }, 1000);
+        } else {
+          setTimeout(() => {
+            location.href = "/login?error=login_failed";
+          }, 1000);
         }
-
+      } catch (err) {
+        document.getElementById('status').textContent = "❌ Network Error: " + err.message;
+        setTimeout(() => {
+          location.href = "/login?error=network_error";
+        }, 3000);
+      }
     }
+
+    async function verifyCaptcha() {
+      const captcha = document.getElementById('captcha-input').value.trim();
+      if (!captcha) {
+        // Add shake animation for error
+        const input = document.getElementById('captcha-input');
+        input.style.borderColor = '#f44336';
+        input.style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+          input.style.animation = '';
+          input.style.borderColor = '#ddd';
+        }, 500);
+        return;
+      }
+
+      // Disable button and show loading
+      const button = document.querySelector('#step-captcha .start-btn');
+      button.disabled = true;
+      button.textContent = 'Verifying...';
+
+      try {
+        const res = await fetch('/first-time-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ uid, password, captcha, step: 'second' })
+        });
+
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          showStep('step-final-loading');
+          const messages = [
+            "📡 Logging you in securely...",
+            "📊 Fetching your attendance records...",
+            "📚 Getting your enrolled courses...",
+            "📅 Loading your timetable...",
+            "📝 Fetching internal marks...",
+            "🧑‍🎓 Retrieving your student profile...",
+            "📃 Loading your exam results...",
+            "🪪 Checking your leave applications...",
+            "🗓️ Grabbing your date sheet...",
+            "💸 Fetching fee details...",
+            "Finalizing setup ✅",
+            "🎉 All set! Redirecting you to your dashboard..."
+          ];
+          let i = 0;
+          const statusEl = document.getElementById('final-status');
+          const interval = setInterval(() => {
+            if (i < messages.length) {
+              statusEl.textContent = messages[i];
+              i++;
+            } else {
+              clearInterval(interval);
+            }
+          }, 3000);
+          
+          const thr_res = await fetch('/first-time-user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uid, password, step: 'third' })
+          });
+
+          const th_data = await thr_res.json();
+
+          if (th_data.status === 'success') {
+            showStep('step-success');
+            
+            // Submit form after showing success
+            setTimeout(() => {
+              document.getElementById('form-uid').value = uid;
+              document.getElementById('form-password').value = password;
+              document.getElementById('register-form').submit();
+            }, 2000);
+          } else {
+            document.getElementById('final-status').textContent = "❌ " + th_data.msg;
+            setTimeout(() => {
+              window.location.href = "/login?error=setup_failed";
+            }, 3000);
+          }
+        } else {
+          document.getElementById('captcha-container').innerHTML += `
+            <p style="color: #f44336; margin-top: 10px;">❌ ${data.msg}</p>
+            <p style="color: #666; font-size: 14px;">Redirecting back to login...</p>
+          `;
+          setTimeout(() => {
+            window.location.href = "/login?error=captcha_failed";
+          }, 3000);
+        }
+      } catch (err) {
+        document.getElementById('captcha-container').innerHTML += `
+          <p style="color: #f44336; margin-top: 10px;">❌ Error: ${err.message}</p>
+        `;
+        setTimeout(() => {
+          window.location.href = "/login?error=network_error";
+        }, 3000);
+      }
+    }
+
+    // Add shake animation for errors
+    const shakeCSS = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+    `;
+    const style = document.createElement('style');
+    style.textContent = shakeCSS;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>

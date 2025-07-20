@@ -189,4 +189,17 @@ def get_attendance_goal(uid: str):
 
 def set_goal_value(uid: str, goal: int):
     users = db['users']
-    user = users.update_one({"uid": uid}, {"$set": {"goal": goal}}, upsert=True)
+    users.update_one({"uid": uid}, {"$set": {"goal": goal}}, upsert=True)
+    
+def update_session_first(uid, session_id, page):
+    session_first_db = db['session_first']
+    session_first_db.update_one(
+            {'uid': uid},
+            {'$set': {'session_id': session_id, 'page': page}},
+            upsert=True
+        )
+    
+def get_session_first(uid):
+    session_first_db = db['session_first']
+    session_first_db.find_one({'uid': uid})
+    

@@ -187,8 +187,6 @@ class CUIMSScraper:
     async def _login_first(self, page, uid, password):
         print("\n[CUIMS BACKEND FIRST LOGIN - PLAYWRIGHT]\n")
 
-        await page.goto('https://students.cuchd.in/frmMyCourse.aspx')
-
         # Fill user ID
         await page.fill("#txtUserId", uid)
 
@@ -768,6 +766,8 @@ async def refresh_user_data(uid: str, password: str, data_to_be_fetched: str) ->
             }
         else:
             return scraped_data
+        
+
     
 # Example usage
 # async def main():
