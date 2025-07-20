@@ -15,14 +15,6 @@ from pydantic import BaseModel
 import base64
 from playwright.async_api import async_playwright
 
-async def install_playwright():
-    async with async_playwright() as p:
-        pass
-
-asyncio.run(install_playwright())
-
-
-
 load_dotenv()
 app = FastAPI(title="Web Automation Dashboard")
 app.mount("/static", StaticFiles(directory="static"), name="static")
