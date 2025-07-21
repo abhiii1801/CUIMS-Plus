@@ -168,7 +168,11 @@ async def dashboard(request: Request, success: Optional[bool] = False):
     name = db.get_profile(user['uid'])['Name']
     branch = db.get_profile(user['uid'])['Program Code']
     attendance = db.get_attendance(user['uid'])
+    timetable = db.get_timetable(user['uid'])
+    today_weekday = datetime.today().weekday()
+    timetable_today = timetable[today_weekday]
     last_updated = db.get_last_updated(user['uid'])
+    courses = db.get_courses(user['uid'])
     last_updated = datetime.fromisoformat(last_updated) if last_updated != "Refreshing Data" else last_updated
     print("Dashboard data fetched successfully.")
     return templates.TemplateResponse("dashboard.html", {
@@ -177,6 +181,8 @@ async def dashboard(request: Request, success: Optional[bool] = False):
         "user": user,
         "branch":branch,
         "attendance": attendance,
+        "today_timetable" : timetable_today,
+        "courses" : courses,
         "active_page": 'dashboard',
         "last_updated": last_updated,
         "success": success

@@ -16,42 +16,72 @@
                 <h2>Welcome, {{ name }}</h2>
                 <p>UID: {{ user.uid }} • {{ branch }}</p>
             </div>
-              <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
+            <div id="update-banner" style="background: #ffe0b2; padding: 10px; border-radius: 8px; margin-top: 10px; display: {% if last_updated == "Refreshing Data" %}block{% else %}none{% endif %};">
                 <span class="spinner"></span>Fetching latest Data...
-              </div>
-              
+            </div>
+        </div>
+
+        <!-- Next Class Section -->
+        <div class="next-class-section">
+            {% if today_timetable %}
+                {% set current_class = None %}
+                {% set next_class = None %}
+                {% for cls in today_timetable %}
+                    <div class="next-class-card" id="class-{{ loop.index }}" data-time="{{ cls.time }}">
+                        <div class="next-class-header">
+                            <div class="next-class-title">Next Class</div>
+                            <div class="next-class-status" id="status-{{ loop.index }}">Upcoming</div>
+                        </div>
+                        <div class="next-class-content">
+                            <div class="next-class-info">
+                                <div class="next-class-subject">{{ courses[cls.subject_code] if courses and cls.subject_code in courses else cls.subject_code }}</div>
+                                <div class="next-class-code">{{ cls.subject_code }}</div>
+                                <div class="next-class-teacher">{{ cls.teacher }}</div>
+                            </div>
+                            <div class="next-class-details">
+                                <div class="next-class-time">{{ cls.time }}</div>
+                                <div class="next-class-location">{{ cls.location }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="next-class-card">
+                    <div class="no-classes">No classes today</div>
+                </div>
+            {% endif %}
         </div>
         
         <div class="subjects-container" id="subjectContainer">
             {% for subject in attendance %}
                 <div class="subject-card {{subject.status}}">
-  <div class="subject-header">
-    <div>
-      <div class="subject-name">{{ subject.name }}</div>
-      <div class="subject-code">{{ subject.code }}</div>
-    </div>
-    <div class="attendance-percentage-{{ subject.status }}">{{ subject.percentage }}%</div>
-  </div>
+                    <div class="subject-header">
+                        <div>
+                            <div class="subject-name">{{ subject.name }}</div>
+                            <div class="subject-code">{{ subject.code }}</div>
+                        </div>
+                        <div class="attendance-percentage-{{ subject.status }}">{{ subject.percentage }}%</div>
+                    </div>
 
-  <div class="attendance-stats">
-    <div class="stat-item">
-      <div class="stat-value">{{ subject.attended }}</div>
-      <div class="stat-label">Attended</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-value">{{ subject.total }}</div>
-      <div class="stat-label">Total</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-value">{{ subject.missed }}</div>
-      <div class="stat-label">Missed</div>
-    </div>
-  </div>
+                    <div class="attendance-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ subject.attended }}</div>
+                            <div class="stat-label">Attended</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ subject.total }}</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ subject.missed }}</div>
+                            <div class="stat-label">Missed</div>
+                        </div>
+                    </div>
 
-  <div class="can-miss can-miss-{{ subject.status }}">
-    {{ subject.can_miss_message }}
-    </div>
-</div>
+                    <div class="can-miss can-miss-{{ subject.status }}">
+                        {{ subject.can_miss_message }}
+                    </div>
+                </div>
             {% endfor %}
         </div>
     </div>
@@ -59,13 +89,109 @@
     {% include 'bottom_nav.html' %}
     
     <script>
-         const success = {{ success | tojson | safe }};
-          if (success) {
+        const success = {{ success | tojson | safe }};
+        if (success) {
             const banner = document.getElementById('update-banner');
             banner.textContent = "✅ Latest Data loaded.";
             banner.style.display = 'block';
             setTimeout(() => banner.style.display = 'none', 3000);
-          }
+        }
+
+        function updateNextClassStatus() {
+            // const now = new Date();
+            // const currentHour = now.getHours();
+            // const currentMinute = now.getMinutes();
+            // const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
+
+
+            const currentHour = 10; // Set hour (24-hour format)
+            const currentMinute = 45; // Set minute
+            const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
+
+
+            const classCards = document.querySelectorAll('.next-class-card[data-time]');
+            let nextClassFound = false;
+            let currentClassCard = null;
+            let nextClassCard = null;
+            
+            // Hide all classes initially
+            classCards.forEach(card => card.style.display = 'none');
+            
+            classCards.forEach((card, index) => {
+                const timeText = card.getAttribute('data-time').trim();
+                const timeMatch = timeText.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                
+                if (timeMatch) {
+                    let startHour = parseInt(timeMatch[1]);
+                    const startMinute = parseInt(timeMatch[2]);
+                    let endHour = parseInt(timeMatch[3]);
+                    const endMinute = parseInt(timeMatch[4]);
+                    const period = timeMatch[5].toUpperCase();
+                    
+                    // Convert to 24-hour format
+                    if (period === 'PM' && startHour !== 12) {
+                        startHour += 12;
+                    } else if (period === 'AM' && startHour === 12) {
+                        startHour = 0;
+                    }
+                    
+                    if (period === 'PM' && endHour !== 12) {
+                        endHour += 12;
+                    } else if (period === 'AM' && endHour === 12) {
+                        endHour = 0;
+                    }
+                    
+                    const startTime = startHour * 60 + startMinute;
+                    const endTime = endHour * 60 + endMinute;
+                    
+                    // Remove all status classes
+                    card.classList.remove('past', 'current', 'upcoming');
+                    const statusElement = card.querySelector('.next-class-status');
+                    const titleElement = card.querySelector('.next-class-title');
+                    
+                    if (currentTime >= startTime && currentTime <= endTime) {
+                        // Currently ongoing
+                        card.classList.add('current');
+                        statusElement.classList.add('current');
+                        statusElement.textContent = 'Ongoing';
+                        titleElement.textContent = 'Current Class';
+                        currentClassCard = card;
+                        card.style.display = 'block';
+                        nextClassFound = true;
+                    } else if (currentTime > endTime) {
+                        // Past class
+                        card.classList.add('past');
+                        statusElement.classList.add('past');
+                        statusElement.textContent = 'Past';
+                    } else if (currentTime < startTime && !nextClassCard) {
+                        // Next upcoming class
+                        card.classList.add('upcoming');
+                        statusElement.classList.add('upcoming');
+                        statusElement.textContent = 'Upcoming';
+                        titleElement.textContent = 'Next Class';
+                        nextClassCard = card;
+                        card.style.display = 'block';
+                    }
+                }
+            });
+            
+            // Show the appropriate class card
+            if (currentClassCard) {
+                currentClassCard.style.display = 'none';
+            } else if (nextClassCard) {
+                nextClassCard.style.display = 'block';
+            } else if (classCards.length > 0) {
+                // If no current or upcoming classes, show "No more classes today"
+                const firstCard = classCards[0];
+                firstCard.style.display = 'block';
+                firstCard.classList.add('past');
+                const statusElement = firstCard.querySelector('.next-class-status');
+                const titleElement = firstCard.querySelector('.next-class-title');
+                statusElement.classList.add('past');
+                statusElement.textContent = 'Done';
+                titleElement.textContent = 'No more classes today';
+            }
+        }
 
         window.addEventListener('load', function () {
             const cards = document.querySelectorAll('.subject-card');
@@ -75,51 +201,12 @@
                 }, index * 100);
             });
 
-
-
-            // const banner = document.getElementById('update-banner');
-
-            // fetch('/refresh-data', {
-            // method: 'POST',
-            // headers: { 'Content-Type': 'application/json' },
-            // })
-            // .then(res => res.json())
-            // .then(data => {
-            //     if (data.attendance) {
-            //     // Rebuild subjects
-            //     const container = document.getElementById('subjectContainer');
-            //     container.innerHTML = '';
-
-            //     data.attendance.forEach(subject => {
-            //         const card = document.createElement('div');
-            //         card.className = `subject-card ${subject.status}`;
-            //         card.innerHTML = `
-            //         <div class="subject-header">
-            //             <div>
-            //             <div class="subject-name">${subject.name}</div>
-            //             <div class="subject-code">${subject.code}</div>
-            //             </div>
-            //             <div class="attendance-percentage-${ subject.status }">${subject.percentage}%</div>
-            //         </div>
-            //         <div class="attendance-stats">
-            //             <div class="stat-item"><div class="stat-value">${subject.attended}</div><div class="stat-label">Attended</div></div>
-            //             <div class="stat-item"><div class="stat-value">${subject.total}</div><div class="stat-label">Total</div></div>
-            //             <div class="stat-item"><div class="stat-value">${subject.missed}</div><div class="stat-label">Missed</div></div>
-            //         </div>
-            //         <div class="can-miss can-miss can-miss-${ subject.status }">${subject.can_miss_message}</div>
-            //         `;
-            //         container.appendChild(card);
-            //     });
-
-            //     banner.textContent = "✅ Latest attendance loaded.";
-            //     setTimeout(() => banner.style.display = 'none', 3000);
-            //     }
-            // })
-            // .catch(err => {
-            //     banner.textContent = "⚠️ Couldn't fetch latest data.";
-            // });
+            // Update next class status
+            updateNextClassStatus();
+            
+            // Update every minute
+            setInterval(updateNextClassStatus, 60000);
         });
-
     </script>
 </body>
 </html>
