@@ -22,21 +22,17 @@ class CUIMSScraper:
             browser = await p.chromium.launch(headless=True)
             saved_state = db.load_session(uid)
             if saved_state:
-                print('found state session')
                 context = await browser.new_context(storage_state=saved_state)
                 page = await context.new_page()
                 await page.goto("https://students.cuchd.in/StudentHome.aspx")
                 await page.wait_for_load_state("load")
                 if page.url == "https://students.cuchd.in/StudentHome.aspx":
-                    print("Session reused ✅")
                     logged_in = True
                 else:
-                    print('Session Expired')
                     context = await browser.new_context()
                     page = await context.new_page()
                     logged_in = False
             else:
-                print('didnt found state session')
                 context = await browser.new_context()
                 page = await context.new_page()
                 logged_in = False
@@ -45,19 +41,15 @@ class CUIMSScraper:
                 while(not logged_in):
                     captcha_img = await self._login_first(page, uid, password)
                     if captcha_img:
-                        print(captcha_img)
                         captcha_txt = await utils.extract_captcha_from_img(captcha_img)
                         success = await self._login_second(page, uid, password, captcha_txt)
                         if success:
-                            print("Login Sucessfull Yeay Babyyyyyyy ~!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                             storage_state = await context.storage_state()
                             db.save_session(uid, storage_state)
                             logged_in = True
                         else:
-                            print("Login Seconds has been Failed")
                             continue
                     else:
-                        print("Captcha not found. Retrying...")
                         continue
                     
                 if data_to_be_fetched == "initial":
@@ -183,7 +175,6 @@ class CUIMSScraper:
                 await browser.close()
     
     async def _login_first(self, page, uid, password):
-        print("\n[CUIMS BACKEND FIRST LOGIN - PLAYWRIGHT]\n")
 
         # Fill user ID
         await page.fill("#txtUserId", uid)
@@ -203,11 +194,9 @@ class CUIMSScraper:
             return image
 
         except Exception as e:
-            print(f"Captcha error: {e}")
             return False
         
     async def _login_second(self, page,uid: str ,password: str, captcha: str) -> bool:
-        print("\n[CUIMS BACKEND SECOND LOGIN - PLAYWRIGHT]\n")
         try:
             # Fill password field
             await page.fill("#txtLoginPassword", password)
@@ -226,16 +215,13 @@ class CUIMSScraper:
             if current_url == 'https://students.cuchd.in/StudentHome.aspx':
                 return True
             else:
-                print(f"Second login failed")
                 time.sleep(10)
                 return False
             
         except Exception as e:
-            print(f"Second login failed: {e}")
             return False
     
     async def _scrape_attendance(self, page) -> list:
-        print("\n[CUIMS BACKEND RETRIEVE ATTENDANCE - PLAYWRIGHT]\n")
 
         await page.goto('https://students.cuchd.in/frmStudentCourseWiseAttendanceSummary.aspx?type=etgkYfqBdH1fSfc255iYGw==')
 
@@ -267,11 +253,9 @@ class CUIMSScraper:
             return attendance_data
 
         except Exception as e:
-            print(f"Error scraping attendance: {e}")
             return False
   
     async def _scrape_timetable(self, page) -> list:
-        print("\n[CUIMS BACKEND RETRIEVE TIMETABLE - PLAYWRIGHT]\n")
 
         final_time_table = []
 
@@ -319,7 +303,6 @@ class CUIMSScraper:
 
                         day_data.append(period_data)
                     except Exception as e:
-                        print(f"Failed to parse period: {period} | Error: {e}")
                         continue
 
                 final_time_table.append(day_data)
@@ -327,11 +310,9 @@ class CUIMSScraper:
             return final_time_table
 
         except Exception as e:
-            print(f"Error retrieving timetable: {e}")
             return False
 
     async def _scrape_courses(self, page) -> list:
-        print("\n[CUIMS BACKEND RETRIEVE COURSES - PLAYWRIGHT]\n")
 
         await page.goto('https://students.cuchd.in/frmMyTimeTable.aspx')
 
@@ -358,11 +339,9 @@ class CUIMSScraper:
             return courses
 
         except Exception as e:
-            print(f"Error while scraping courses: {e}")
             return False
 
     async def _scrape_profile(self, page):
-        print("\n[CUIMS BACKEND RETRIEVE PROFILE - PLAYWRIGHT]\n")
 
         await page.goto('https://students.cuchd.in/frmStudentProfile.aspx')
 
@@ -425,44 +404,45 @@ class CUIMSScraper:
             return personal_info
 
         except Exception as e:
-            print(f"Error retrieving profile: {e}")
             return False
 
     async def _scrape_marks(self, page):
-        print("\n[CUIMS BACKEND RETRIEVE MARKS - PLAYWRIGHT]\n")
+        
+        try:
 
-        await page.goto('https://students.cuchd.in/frmStudentMarksView.aspx')
+            await page.goto('https://students.cuchd.in/frmStudentMarksView.aspx')
 
-        subjects = {}
+            subjects = {}
 
-        headers = await page.query_selector_all(".ui-accordion-header")
+            headers = await page.query_selector_all(".ui-accordion-header")
 
-        for i, header in enumerate(headers):
-            subject_text = (await header.inner_text()).strip()
-            subjects[subject_text] = {"experiments": []}
+            for i, header in enumerate(headers):
+                subject_text = (await header.inner_text()).strip()
+                subjects[subject_text] = {"experiments": []}
 
-            if i != 0:
-                await header.click()
-                await page.wait_for_timeout(1000)  # 1 sec wait after clicking
+                if i != 0:
+                    await header.click()
+                    await page.wait_for_timeout(1000)  # 1 sec wait after clicking
 
-            panel_id = await header.get_attribute("aria-controls")
-            panel = await page.query_selector(f"#{panel_id}")
+                panel_id = await header.get_attribute("aria-controls")
+                panel = await page.query_selector(f"#{panel_id}")
 
-            rows = await panel.query_selector_all("tbody tr")
+                rows = await panel.query_selector_all("tbody tr")
 
-            for row in rows:
-                cols = await row.query_selector_all("td")
-                if len(cols) == 3:
-                    subjects[subject_text]["experiments"].append({
-                        "name": (await cols[0].inner_text()).strip(),
-                        "max_marks": (await cols[1].inner_text()).strip(),
-                        "marks_obtained": (await cols[2].inner_text()).strip()
-                    })
+                for row in rows:
+                    cols = await row.query_selector_all("td")
+                    if len(cols) == 3:
+                        subjects[subject_text]["experiments"].append({
+                            "name": (await cols[0].inner_text()).strip(),
+                            "max_marks": (await cols[1].inner_text()).strip(),
+                            "marks_obtained": (await cols[2].inner_text()).strip()
+                        })
 
-        return subjects
+            return subjects
+        except:
+            return {}
    
     async def _scrape_fees(self, page):
-        print("\n[CUIMS BACKEND RETRIEVE FEES - PLAYWRIGHT]\n")
         await page.goto("https://students.cuchd.in/frmAccountStudentDetails.aspx")
         
         try:
@@ -515,11 +495,9 @@ class CUIMSScraper:
             return payments
 
         except Exception as e:
-            print(f"[ERROR] Failed to retrieve fee details: {e}")
             return False
   
     async def _scrape_result(self, page):
-        print("\n[CUIMS BACKEND RETRIEVE RESULT - PLAYWRIGHT]\n")
 
         try:
             await page.goto("https://students.cuchd.in/result.aspx")
@@ -529,7 +507,7 @@ class CUIMSScraper:
 
             # DEBUG: Dump HTML to check selectors if needed
             html = await page.content()
-            # print(html)  # Uncomment this if you wanna debug full HTML content
+            
 
             try:
                 # Try to get CGPA using a safer selector
@@ -537,7 +515,6 @@ class CUIMSScraper:
                 if cgpa_elem:
                     result['cgpa'] = await cgpa_elem.inner_text()
                 else:
-                    print("⚠️ CGPA element not found!")
                     result['cgpa'] = "N/A"
 
                 result['semester_wise_result'] = []
@@ -574,17 +551,14 @@ class CUIMSScraper:
                     result['semester_wise_result'].append(semester_res)
 
             except Exception as e:
-                print(f"[WARNING] Could not retrieve full result: {e}")
                 result['semester_wise_result'] = []
 
             return result
 
         except Exception as e:
-            print(f"[ERROR] Failed to load result page: {e}")
             return False
       
     async def _scrape_datesheet(self, page):
-        print("\n[CUIMS BACKEND RETRIEVE DATESHEET - PLAYWRIGHT]\n")
 
         try:
             await page.goto('https://students.cuchd.in/frmStudentDatesheet.aspx')
@@ -620,16 +594,12 @@ class CUIMSScraper:
                     datesheet.append(row_data)
 
             except Exception as e:
-                print(f"[WARNING] Datesheet inner error: {e}")
-
-            return datesheet
+                return datesheet
 
         except Exception as e:
-            print(f"[ERROR] Failed to load datesheet page: {e}")
             return False
         
     async def _scrape_leaves(self, page):
-        print("\n[CUIMS BACKEND RETRIEVE LEAVES - PLAYWRIGHT]\n")
         leaves = []
 
         # --- DUTY LEAVE ---
@@ -662,7 +632,6 @@ class CUIMSScraper:
                 dl.append(dl_info)
             leaves.append(dl)
         except Exception as e:
-            print(f"[Duty Leave ERROR] {e}")
             leaves.append([])
 
         # --- MEDICAL LEAVE ---
@@ -695,7 +664,6 @@ class CUIMSScraper:
                 ml.append(ml_info)
             leaves.append(ml)
         except Exception as e:
-            print(f"[Medical Leave ERROR] {e}")
             leaves.append([])
 
         return leaves
@@ -765,12 +733,3 @@ async def refresh_user_data(uid: str, password: str, data_to_be_fetched: str) ->
         else:
             return scraped_data
         
-
-    
-# Example usage
-# async def main():
-#     result = await refresh_user_data( "23BDA70012", "@ABhinav1818")
-#     print(json.dumps(result, indent=2))
-
-# if __name__ == "__main__":
-#     asyncio.run(main())

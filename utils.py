@@ -5,7 +5,6 @@ from config import get_config
 from dotenv import load_dotenv
 
 async def extract_captcha_from_img(image: bytes) -> str:
-        print("\n[CUIMS BACKEND EXTRACT CAPTCHA - CAPTCHA_SOLVING]\n")
 
         # Convert bytes to image if needed
         if isinstance(image, bytes):
@@ -31,9 +30,7 @@ async def extract_captcha_from_img(image: bytes) -> str:
         )
         
         def filter_text(text, whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"):
-            print(f'og text: ', text)
             corrected_text = ''.join(c for c in text if c in whitelist)
-            print(f'corrected Text: ', corrected_text)
             return corrected_text
 
         try:
@@ -41,7 +38,6 @@ async def extract_captcha_from_img(image: bytes) -> str:
             return filter_text(result['ParsedResults'][0]['ParsedText'].strip())
         
         except Exception as e:
-            print("OCR failed:", e)
             return ""
         
 def transform_attendance(attendance_data: list, goal=75) -> list:
