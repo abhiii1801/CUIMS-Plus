@@ -55,10 +55,13 @@ class CUIMSScraper:
                 if data_to_be_fetched == "initial":
                 
                     courses_data = await self._scrape_courses(page)
+                    print("Courses data scraped successfully.")
                         
                     timetable_data =await self._scrape_timetable(page)
+                    print("Timetable data scraped successfully.")
                         
                     attendance_data = await self._scrape_attendance(page)
+                    print("Attendance data scraped successfully.")
                     
                     return {
                         "status": "success",
@@ -73,6 +76,7 @@ class CUIMSScraper:
                     
                 elif data_to_be_fetched == 'marks':
                     marks_data = await self._scrape_marks(page)
+                    print("Marks data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -85,6 +89,7 @@ class CUIMSScraper:
                     
                 elif data_to_be_fetched == 'result':
                     result_data = await self._scrape_result(page)
+                    print("Result data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -96,6 +101,7 @@ class CUIMSScraper:
                     
                 elif data_to_be_fetched == 'leaves':
                     leaves_data = await self._scrape_leaves(page)
+                    print("Leaves data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -107,6 +113,7 @@ class CUIMSScraper:
                     
                 elif data_to_be_fetched == 'profile':                
                     profile_data = await self._scrape_profile(page)
+                    print("Profile data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -118,6 +125,7 @@ class CUIMSScraper:
                     
                 elif data_to_be_fetched == 'datesheet':
                     datesheet_data = await self._scrape_datesheet(page)
+                    print("Datesheet data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -129,6 +137,7 @@ class CUIMSScraper:
                     
                 elif data_to_be_fetched == 'fees':
                     fees_data = await self._scrape_fees(page)
+                    print("Fees data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -139,14 +148,23 @@ class CUIMSScraper:
                     }
                 elif data_to_be_fetched == 'all':
                     attendance_data = await self._scrape_attendance(page)
+                    print("Attendance data scraped successfully.")
                     courses_data = await self._scrape_courses(page)
+                    print("Courses data scraped successfully.")
                     timetable_data = await self._scrape_timetable(page)
+                    print("Timetable data scraped successfully.")
                     marks_data = await self._scrape_marks(page)
+                    print("Marks data scraped successfully.")
                     profile_data = await self._scrape_profile(page)
+                    print("Profile data scraped successfully.")
                     result_data = await self._scrape_result(page)
+                    print("Result data scraped successfully.")
                     leaves_data = await self._scrape_leaves(page)
+                    print("Leaves data scraped successfully.")
                     datesheet_data = await self._scrape_datesheet(page)
+                    print("Datesheet data scraped successfully.")
                     fees_data = await self._scrape_fees(page)
+                    print("Fees data scraped successfully.")
                     return {
                         "status": "success",
                         "data": {
@@ -176,45 +194,52 @@ class CUIMSScraper:
     
     async def _login_first(self, page, uid, password):
 
-        # Fill user ID
+        print("Filling user ID...")
         await page.fill("#txtUserId", uid)
+        print("User ID filled successfully.")
 
-        # Click next
+        print("Clicking next button...")
         await page.click("#btnNext")
+        print("Next button clicked successfully.")
 
         try:
-            # Wait for captcha image
+            print("Waiting for captcha image...")
             await page.wait_for_selector("#imgCaptcha", timeout=10000)
             captcha_element = await page.query_selector("#imgCaptcha")
+            print("Captcha image loaded successfully.")
 
-            # Take screenshot of captcha
+            print("Taking screenshot of captcha...")
             captcha_bytes = await captcha_element.screenshot()
-            image = Image.open(BytesIO(captcha_bytes))           
-            # image.show()
+            image = Image.open(BytesIO(captcha_bytes))
+            print("Captcha screenshot taken successfully.")
             return image
 
         except Exception as e:
+            print(f"Error during captcha loading or screenshot: {e}")
             return False
         
     async def _login_second(self, page,uid: str ,password: str, captcha: str) -> bool:
         try:
-            # Fill password field
+            print("Filling password field...")
             await page.fill("#txtLoginPassword", password)
+            print("Password field filled successfully.")
 
-            # Fill captcha field
+            print("Filling captcha field...")
             await page.fill("#txtcaptcha", captcha)
+            print("Captcha field filled successfully.")
 
-            # Click login button
+            print("Clicking login button...")
             await page.click("#btnLogin")
-            
-            
-            # await page.wait_for_load_state("load")
-            
+            print("Login button clicked successfully.")
+
             current_url = page.url
-            
+            print(f"Current URL after login attempt: {current_url}")
+
             if current_url == 'https://students.cuchd.in/StudentHome.aspx':
+                print("Login successful.")
                 return True
             else:
+                print("Login failed. Retrying...")
                 time.sleep(10)
                 return False
             
@@ -250,9 +275,11 @@ class CUIMSScraper:
                     }
                     attendance_data.append(attendance_dict)
 
+            print("Attendance data scraped from webpage.")
             return attendance_data
 
         except Exception as e:
+            print(f"Error scraping attendance data: {e}")
             return False
   
     async def _scrape_timetable(self, page) -> list:
@@ -307,9 +334,11 @@ class CUIMSScraper:
 
                 final_time_table.append(day_data)
 
+            print("Timetable data scraped from webpage.")
             return final_time_table
 
         except Exception as e:
+            print(f"Error scraping timetable data: {e}")
             return False
 
     async def _scrape_courses(self, page) -> list:
@@ -336,9 +365,11 @@ class CUIMSScraper:
                     "course_name": course_name
                 })
 
+            print("Courses data scraped from webpage.")
             return courses
 
         except Exception as e:
+            print(f"Error scraping courses data: {e}")
             return False
 
     async def _scrape_profile(self, page):
@@ -401,9 +432,11 @@ class CUIMSScraper:
 
             personal_info['contact_info'] = contact_info
 
+            print("Profile data scraped from webpage.")
             return personal_info
 
         except Exception as e:
+            print(f"Error scraping profile data: {e}")
             return False
 
     async def _scrape_marks(self, page):
@@ -438,8 +471,10 @@ class CUIMSScraper:
                             "marks_obtained": (await cols[2].inner_text()).strip()
                         })
 
+            print("Marks data scraped from webpage.")
             return subjects
         except:
+            print("Error scraping marks data.")
             return {}
    
     async def _scrape_fees(self, page):
@@ -492,9 +527,11 @@ class CUIMSScraper:
 
                     payments.append(trans_detail)
 
+            print("Fees data scraped from webpage.")
             return payments
 
         except Exception as e:
+            print(f"Error scraping fees data: {e}")
             return False
   
     async def _scrape_result(self, page):
@@ -553,9 +590,11 @@ class CUIMSScraper:
             except Exception as e:
                 result['semester_wise_result'] = []
 
+            print("Result data scraped from webpage.")
             return result
 
         except Exception as e:
+            print(f"Error scraping result data: {e}")
             return False
       
     async def _scrape_datesheet(self, page):
@@ -594,9 +633,14 @@ class CUIMSScraper:
                     datesheet.append(row_data)
 
             except Exception as e:
+                print(f"Error parsing datesheet rows: {e}")
                 return datesheet
 
+            print("Datesheet data scraped from webpage.")
+            return datesheet
+
         except Exception as e:
+            print(f"Error scraping datesheet data: {e}")
             return False
         
     async def _scrape_leaves(self, page):
@@ -631,8 +675,10 @@ class CUIMSScraper:
 
                 dl.append(dl_info)
             leaves.append(dl)
+            print("Duty leave data scraped successfully.")
         except Exception as e:
             leaves.append([])
+            print(f"Error scraping duty leave data: {e}")
 
         # --- MEDICAL LEAVE ---
         try:
@@ -663,8 +709,10 @@ class CUIMSScraper:
 
                 ml.append(ml_info)
             leaves.append(ml)
+            print("Medical leave data scraped successfully.")
         except Exception as e:
             leaves.append([])
+            print(f"Error scraping medical leave data: {e}")
 
         return leaves
     
@@ -732,4 +780,4 @@ async def refresh_user_data(uid: str, password: str, data_to_be_fetched: str) ->
             }
         else:
             return scraped_data
-        
+

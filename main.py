@@ -16,36 +16,62 @@ import base64
 from playwright.async_api import async_playwright
 
 load_dotenv()
+print("Starting FastAPI application...")
 app = FastAPI(title="Web Automation Dashboard")
+print("FastAPI application initialized.")
+
+print("Mounting static files...")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+print("Static files mounted successfully.")
+
 templates = Jinja2Templates(directory="templates")
+print("Initializing database...")
 db.init_db()
+print("Database initialized successfully.")
+
+print("Loading configuration...")
 config = get_config()
+print("Configuration loaded successfully.")
+
+print("Setting up encryption key...")
 FERNET_KEY = config["FERNET_KEY"]
 fernet = Fernet(FERNET_KEY.encode())
+print("Encryption key set up successfully.")
 
 def verify_token(token: str):
+    print("Verifying token...")
     try:
         config = get_config()
-        payload = jwt.decode(token,str(config['SECRET_KEY']) , algorithms=["HS256"])
+        payload = jwt.decode(token, str(config['SECRET_KEY']), algorithms=["HS256"])
         username: str = payload.get("sub")
         if username is None:
+            print("Token verification failed: username is None.")
             return None
+        print("Token verified successfully.")
         return username
     except jwt.PyJWTError:
+        print("Token verification failed: PyJWTError.")
         return None
 
 def encrypt_password(password: str) -> str:
+    print("Encrypting password...")
     return fernet.encrypt(password.encode()).decode()
+    print("Password encrypted successfully.")
 
 def decrypt_password(encrypted_password: str) -> str:
+    print("Decrypting password...")
     return fernet.decrypt(encrypted_password.encode()).decode()
+    print("Password decrypted successfully.")
 
 def verify_password(plain_password: str, encrypted_password: str) -> bool:
+    print("Verifying password...")
     try:
         decrypted = decrypt_password(encrypted_password)
-        return decrypted == plain_password
+        result = decrypted == plain_password
+        print(f"Password verification result: {result}")
+        return result
     except Exception:
+        print("Password verification failed: Exception occurred.")
         return False 
 
 def get_current_user(request: Request):
@@ -59,6 +85,7 @@ def get_current_user(request: Request):
     return user
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    print("Creating access token...")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -67,29 +94,37 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     config = get_config()
     encoded_jwt = jwt.encode(to_encode, str(config['SECRET_KEY']), algorithm="HS256")
+    print("Access token created successfully.")
     return encoded_jwt
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+    print("Handling home route...")
     user = get_current_user(request)
     if not user:
+        print("User not authenticated. Redirecting to login page.")
         return RedirectResponse(url="/login", status_code=302)
+    print("User authenticated. Redirecting to dashboard.")
     return RedirectResponse(url="/dashboard", status_code=302)
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
+    print("Handling login page route...")
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
 async def login(request: Request, uid: str = Form(...), password: str = Form(...)):
+    print("Handling login request...")
     user = db.get_user_by_uid(uid)
     if not user:
+        print("User not found. Redirecting to welcome page.")
         return templates.TemplateResponse("welcome.html", {
             "request": request,
             "uid": uid,
             "password": password
         })
     if not verify_password(password, user["hashed_password"]):
+        print("Invalid credentials. Redirecting to login page.")
         return templates.TemplateResponse("login.html", {
             "request": request,
             "error": "Invalid credentials"
@@ -101,12 +136,14 @@ async def login(request: Request, uid: str = Form(...), password: str = Form(...
         value=access_token,
         max_age=30 * 24 * 60 * 60,  # 30 days
         httponly=True,
-        secure=False  # Set to True in production with HTTPS
+        secure=True  # Set to True in production with HTTPS
     )
+    print("Login successful. Redirecting to home page.")
     return response
 
 @app.post("/register")
 async def register(request: Request, uid: str = Form(...), password: str = Form(...)):
+    print("Handling register request...")
     hashed_password = encrypt_password(password)
     user_doc = db.create_user_document(uid, hashed_password)
     access_token = create_access_token(data={"sub": uid})
@@ -116,21 +153,24 @@ async def register(request: Request, uid: str = Form(...), password: str = Form(
         value=access_token,
         max_age=30 * 24 * 60 * 60,  # 30 days
         httponly=True,
-        secure=False
+        secure=True
     )
+    print("Registration successful. Redirecting to home page.")
     return response
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, success: Optional[bool] = False):
+    print("Handling dashboard route...")
     user = get_current_user(request)
     if not user:
+        print("User not authenticated. Redirecting to login page.")
         return RedirectResponse(url="/login", status_code=302)
-    
     name = db.get_profile(user['uid'])['Name']
     branch = db.get_profile(user['uid'])['Program Code']
     attendance = db.get_attendance(user['uid'])
     last_updated = db.get_last_updated(user['uid'])
     last_updated = datetime.fromisoformat(last_updated) if last_updated != "Refreshing Data" else last_updated
+    print("Dashboard data fetched successfully.")
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "name": name,
@@ -502,5 +542,5 @@ async def apply_settings(request: Request, data: GoalInput):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app,host="0.0.0.0", port=8000)
-    
+
 
