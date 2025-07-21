@@ -19,7 +19,10 @@ class CUIMSScraper:
         
         async with async_playwright() as p:
             logged_in = False
-            browser = await p.chromium.launch(headless=True)
+            browser = await p.chromium.launch(headless=False)
+            context = None
+            page = None
+
             saved_state = db.load_session(uid)
             if saved_state:
                 context = await browser.new_context(storage_state=saved_state)
@@ -28,17 +31,14 @@ class CUIMSScraper:
                 await page.wait_for_load_state("load")
                 if page.url == "https://students.cuchd.in/StudentHome.aspx":
                     logged_in = True
-                else:
-                    context = await browser.new_context()
-                    page = await context.new_page()
-                    logged_in = False
-            else:
+            
+            if not logged_in:
                 context = await browser.new_context()
                 page = await context.new_page()
-                logged_in = False
-            
+                await page.goto("https://students.cuchd.in/StudentHome.aspx")
+
             try:
-                while(not logged_in):
+                while not logged_in:
                     captcha_img = await self._login_first(page, uid, password)
                     if captcha_img:
                         captcha_txt = await utils.extract_captcha_from_img(captcha_img)
@@ -48,10 +48,12 @@ class CUIMSScraper:
                             db.save_session(uid, storage_state)
                             logged_in = True
                         else:
+                            print("Login failed. Retrying...")
                             continue
                     else:
+                        print("Captcha image not found. Retrying...")
                         continue
-                    
+
                 if data_to_be_fetched == "initial":
                 
                     courses_data = await self._scrape_courses(page)
@@ -184,6 +186,7 @@ class CUIMSScraper:
                 
                 
             except Exception as e:
+                print(f"Error during data refresh: {e}")
                 return {
                     "status": "error",
                     "message": str(e),
@@ -727,6 +730,7 @@ async def refresh_user_data(uid: str, password: str, data_to_be_fetched: str) ->
             
             # Initial data fetch updates multiple aspects
             if data_to_be_fetched == "initial":
+                print('data-fetch-initial')
                 if data.get('attendance'):
                     attendace_goal = db.get_attendance_goal(data['uid'])
                     attendance_transformed = utils.transform_attendance(data['attendance'], attendace_goal)

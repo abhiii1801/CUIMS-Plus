@@ -273,6 +273,8 @@ async def refresh_data(request: Request, data_to_be_fetched: Optional[str] = For
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
+    print('refresh-data', data_to_be_fetched)
+    
     result = await refresh_user_data(user['uid'], decrypt_password(user['hashed_password']), data_to_be_fetched)
 
     if result["status"] == "success":
@@ -541,6 +543,6 @@ async def apply_settings(request: Request, data: GoalInput):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app,host="0.0.0.0", port=8000)
+    uvicorn.run(app, port=8000)
 
 
