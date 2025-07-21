@@ -35,10 +35,10 @@ class CUIMSScraper:
             if not logged_in:
                 context = await browser.new_context()
                 page = await context.new_page()
-                await page.goto("https://students.cuchd.in/StudentHome.aspx")
 
             try:
                 while not logged_in:
+                    await page.goto("https://students.cuchd.in/StudentHome.aspx")
                     captcha_img = await self._login_first(page, uid, password)
                     if captcha_img:
                         captcha_txt = await utils.extract_captcha_from_img(captcha_img)
