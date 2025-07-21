@@ -98,15 +98,15 @@
         }
 
         function updateNextClassStatus() {
-            // const now = new Date();
-            // const currentHour = now.getHours();
-            // const currentMinute = now.getMinutes();
-            // const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
-
-
-            const currentHour = 10; // Set hour (24-hour format)
-            const currentMinute = 45; // Set minute
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
             const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
+
+
+            // const currentHour = 10; // Set hour (24-hour format)
+            // const currentMinute = 45; // Set minute
+            // const currentTime = currentHour * 60 + currentMinute; // Convert to minutes
 
 
             const classCards = document.querySelectorAll('.next-class-card[data-time]');
