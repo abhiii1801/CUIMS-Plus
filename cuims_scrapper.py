@@ -19,7 +19,7 @@ class CUIMSScraper:
         
         async with async_playwright() as p:
             logged_in = False
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             context = None
             page = None
 
