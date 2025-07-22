@@ -118,6 +118,7 @@ async def login(request: Request, uid: str = Form(...), password: str = Form(...
     user = db.get_user_by_uid(uid)
     if not user:
         print("User not found. Redirecting to welcome page.")
+        db.insert_new_user(uid)
         return templates.TemplateResponse("welcome.html", {
             "request": request,
             "uid": uid,

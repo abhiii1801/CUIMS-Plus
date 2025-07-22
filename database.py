@@ -17,6 +17,14 @@ def get_user(uid):
     user = users.find_one({'uid': uid})
     return True if user else False
 
+def insert_new_user(uid):
+    collection = db['new_user']
+    collection.update_one(
+        {"uid": uid},              
+        {"$setOnInsert": {"uid": uid}}, 
+        upsert=True
+    )
+
 def get_user_by_uid(uid: str):
     users = db['users']
     user = users.find_one({'uid': uid})
@@ -26,7 +34,7 @@ def create_user_document(username: str, hashed_password: str):
     users = db['users']
     users.update_one(
         {"uid": username},
-        {"$set": {
+        {"$setOnInsert": {
             "hashed_password": hashed_password,
             "created_at": datetime.utcnow(),
             "is_active": True,
