@@ -193,6 +193,7 @@ class CUIMSScraper:
                     "scraped_at": datetime.now().isoformat()
                 }
             finally:
+                db.update_last_updated(uid, datetime.now().isoformat())
                 await browser.close()
     
     async def _login_first(self, page, uid, password):
